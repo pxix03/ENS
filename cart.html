@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>장바구니 - ENS 쇼핑</title>
+
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+  <script src="search.js" defer></script>
+</head>
+<body>
+
+<!-- 공통 헤더 -->
+<div class="header">
+  <div class="top-row">
+    <a href="main.html" class="logo">ENS</a>
+
+    <div class="search-box">
+      <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
+    </div>
+
+    <div class="header-user" id="userDisplay"></div>
+  </div>
+
+  <div class="categories">
+    <button onclick="location.href='main.html'">홈</button>
+    <button onclick="location.href='main.html#NBA'">NBA</button>
+    <button onclick="location.href='main.html#FC'">FC</button>
+    <button onclick="location.href='main.html#E-스포츠'">E-스포츠</button>
+    <button onclick="location.href='shop.html'">쇼핑</button>
+    <button onclick="location.href='community.html'">커뮤니티</button>
+    <button onclick="location.href='game.html'">경기</button>
+  </div>
+</div>
+
+<div id="searchResultBox" class="search-result-box"></div>
+
+<!-- =========================
+     장바구니 본문
+========================= -->
+<div class="cart-container cart-container-root">
+  <div class="cart-title-row">
+    <h1>장바구니(<span id="cartCount">0</span>)</h1>
+  </div>
+
+  <div class="cart-layout">
+    <!-- 왼쪽 : 상품 목록 -->
+    <section class="cart-list-card">
+      <div class="cart-list-header">
+        <div>전체 선택</div>
+      </div>
+      <div id="cartList" class="cart-list"></div>
+    </section>
+
+    <!-- 오른쪽 : 합계/주문 -->
+    <aside class="cart-summary-card">
+      <div class="cart-summary-row">
+        <span>총 상품 금액</span>
+        <span id="cartTotalPrice" class="cart-summary-price">0원</span>
+      </div>
+      <div class="cart-summary-row">
+        <span>배송비</span>
+        <span>+ 0원</span>
+      </div>
+      <div class="cart-summary-row total">
+        <span>결제 예정 금액</span>
+        <span id="cartFinalPrice">0원</span>
+      </div>
+
+      <button class="cart-order-btn" id="btnOrderAll">
+        총 상품 구매하기
+      </button>
+    </aside>
+  </div>
+</div>
+
+<script>
+  function parsePriceNumber(str) {
+    const num = parseInt(String(str || "0").replace(/[^\d]/g, ""), 10);
+    return isNaN(num) ? 0 : num;
+  }
+
+  function formatPrice(num) {
+    const n = Number(num) || 0;
+    return n.toLocaleString("ko-KR") + "원";
+  }
+
+  function getCart() {
+    try {
+      return JSON.parse(localStorage.getItem("ensCart") || "[]");
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    localStorage.setItem("ensCart", JSON.stringify(cart));
+  }
+
+  function renderCart() {
+    const list = getCart();
+    const box = document.getElementById("cartList");
+    const countEl = document.getElementById("cartCount");
+    const totalEl = document.getElementById("cartTotalPrice");
+    const finalEl = document.getElementById("cartFinalPrice");
+
+    if (countEl) countEl.textContent = list.length;
+
+    if (!box) return;
+
+    if (!list.length) {
+      box.innerHTML = `<div class="cart-empty">장바구니에 담긴 상품이 없습니다.</div>`;
+      if (totalEl) totalEl.textContent = "0원";
+      if (finalEl) finalEl.textContent = "0원";
+      return;
+    }
+
+    let total = 0;
+    box.innerHTML = "";
+
+    list.forEach((item, index) => {
+      const priceNum = parsePriceNumber(item.price);
+      const qty = item.qty || 1;
+      const itemTotal = priceNum * qty;
+      total += itemTotal;
+
+      box.innerHTML += `
+        <div class="cart-item">
+          <div class="cart-item-check">
+            <input type="checkbox" checked>
+          </div>
+          <div class="cart-item-thumb">
+            <img src="${item.img}" alt="${item.name}">
+          </div>
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-price">${formatPrice(priceNum)}</div>
+          </div>
+          <div class="cart-item-qty">
+            <button class="qty-btn" data-idx="${index}" data-delta="-1">-</button>
+            <span class="qty">${qty}</span>
+            <button class="qty-btn" data-idx="${index}" data-delta="1">+</button>
+          </div>
+          <div class="cart-item-total">
+            ${formatPrice(itemTotal)}
+          </div>
+          <button class="cart-item-remove" data-idx="${index}">삭제</button>
+        </div>
+      `;
+    });
+
+    if (totalEl) totalEl.textContent = formatPrice(total);
+    if (finalEl) finalEl.textContent = formatPrice(total);
+  }
+
+  // 수량/삭제 버튼 이벤트 위임
+  document.addEventListener("click", function (e) {
+    const qtyBtn = e.target.closest(".qty-btn");
+    if (qtyBtn) {
+      const idx = Number(qtyBtn.dataset.idx);
+      const delta = Number(qtyBtn.dataset.delta);
+      const cart = getCart();
+      if (!cart[idx]) return;
+
+      const current = cart[idx].qty || 1;
+      const next = current + delta;
+      if (next <= 0) {
+        if (!confirm("해당 상품을 장바구니에서 삭제할까요?")) return;
+        cart.splice(idx, 1);
+      } else {
+        cart[idx].qty = next;
+      }
+      saveCart(cart);
+      renderCart();
+      return;
+    }
+
+    const removeBtn = e.target.closest(".cart-item-remove");
+    if (removeBtn) {
+      const idx = Number(removeBtn.dataset.idx);
+      const cart = getCart();
+      if (!cart[idx]) return;
+
+      if (confirm("해당 상품을 삭제하시겠습니까?")) {
+        cart.splice(idx, 1);
+        saveCart(cart);
+        renderCart();
+      }
+    }
+  });
+
+  document.getElementById("btnOrderAll").addEventListener("click", () => {
+    const cart = getCart();
+    if (!cart.length) {
+      alert("장바구니에 담긴 상품이 없습니다.");
+      return;
+    }
+    alert("구매완료!");
+  });
+
+  // 초기 렌더링
+  renderCart();
+</script>
+
+</body>
+</html>
