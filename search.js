@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
             name,
             img: p.img,
             cat,
-            link: "main.html#" + encodeURIComponent(cat)
+            link: "index.html#" + encodeURIComponent(cat)
           });
         }
       });
@@ -458,5 +458,6 @@ document.addEventListener("DOMContentLoaded", () => {
   renderHeaderUser();
   enforceShopLoginIfNeeded();
 });
+
 
 
