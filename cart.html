@@ -1,79 +1,108 @@
-<!DOCTYPE html>
-<html lang="ko">
+<!DOCTYPE html> <!--이동우 --><!-- HTML5 문서 선언 -->
+<html lang="ko"> <!-- 문서 언어 한국어 설정 -->
 <head>
-  <meta charset="UTF-8">
-  <title>장바구니 - ENS 쇼핑</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="data.js"></script>
-  <script src="search.js" defer></script>
-  <script src="auth.js" defer></script>
-  <script src="cart.js" defer></script>
-  <script src="tabs-history.js"></script>
+  <meta charset="UTF-8"> <!-- 문서 문자 인코딩 UTF-8 -->
+  <title>장바구니 - ENS 쇼핑</title> <!-- 브라우저 탭 제목 -->
 
+  <link rel="stylesheet" href="style.css"> <!-- 전체 스타일 CSS -->
+  <script src="data.js"></script> <!-- 상품 데이터 로드 -->
+  <script src="search.js" defer></script> <!-- 검색 기능 (로딩 후 실행) -->
+  <script src="auth.js" defer></script> <!-- 로그인/인증 기능 -->
+  <script src="cart.js" defer></script> <!-- 장바구니 기능 -->
+  <script src="tabs-history.js"></script> <!-- 페이지 히스토리 제어 -->
 </head>
-<body>
 
-<!-- 공통 헤더 -->
-<div class="header">
-  <div class="top-row">
-    <a href="index.html" class="logo">ENS</a>
+<body> <!-- 화면에 표시될 본문 시작 -->
+
+<!-- ===============================
+     공통 상단 헤더 영역
+================================ -->
+<div class="header"> <!-- 헤더 전체 박스 -->
+  <div class="top-row"> <!-- 로고 + 검색 + 유저영역 -->
+
+    <a href="index.html" class="logo">ENS</a> <!-- 로고 클릭 → 홈 이동 -->
+
     <div class="search-box">
       <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
+      <!-- 통합검색 입력창 -->
     </div>
-    <div class="header-user" id="userDisplay"></div>
+
+    <div class="header-user" id="userDisplay"></div> <!-- 로그인/로그아웃 표시 -->
   </div>
 
+  <!-- 상단 카테고리 메뉴 -->
   <div class="categories">
-  <button onclick="location.href='index.html'">홈</button>
-  <button onclick="location.href='nba.html'">NBA</button>
-  <button onclick="location.href='epl.html'">EPL</button>
-  <button onclick="location.href='esports.html'">E-스포츠</button>
-  <button onclick="location.href='shop.html'">쇼핑</button>
-  <button onclick="location.href='community.html'">커뮤니티</button>
-  <button onclick="location.href='game.html'">경기</button>
+    <button onclick="location.href='index.html'">홈</button>
+    <button onclick="location.href='nba.html'">NBA</button>
+    <button onclick="location.href='epl.html'">EPL</button>
+    <button onclick="location.href='esports.html'">E-스포츠</button>
+    <button onclick="location.href='shop.html'">쇼핑</button>
+    <button onclick="location.href='community.html'">커뮤니티</button>
+    <button onclick="location.href='game.html'">경기</button>
   </div>
 </div>
 
+<!-- 검색 결과 자동추천 박스 -->
 <div id="searchResultBox" class="search-result-box"></div>
 
-<!-- =========================
-     장바구니 본문
-========================= -->
-<div class="cart-container cart-container-root">
-  <div class="cart-title-row">
-    <h1>장바구니(<span id="cartCount">0</span>)</h1>
+<!-- ===============================
+     장바구니 본문 영역
+================================ -->
+<div class="cart-container cart-container-root"> <!-- 장바구니 전체 영역 -->
+
+  <div class="cart-title-row"> <!-- 상단 제목 -->
+    <h1>
+      장바구니(
+        <span id="cartCount">0</span> <!-- 장바구니 상품 개수 표시 -->
+      )
+    </h1>
   </div>
 
-  <div class="cart-layout">
-    <!-- 왼쪽 : 상품 목록 -->
-    <section class="cart-list-card">
+  <div class="cart-layout"> <!-- 좌우 레이아웃 구성 -->
+
+    <!-- =======================
+         왼쪽: 장바구니 상품 목록
+    ======================== -->
+    <section class="cart-list-card"> <!-- 상품 리스트 박스 -->
+
       <div class="cart-list-header">
-        <div>전체 선택</div>
+        <div>전체 선택</div> <!-- 전체 선택 문구(실제 기능은 JS에서 처리) -->
       </div>
+
       <div id="cartList" class="cart-list"></div>
+      <!-- JS(cart.js)가 여기에 상품 아이템을 자동 생성해서 넣음 -->
+
     </section>
 
-    <!-- 오른쪽 : 합계/주문 -->
-    <aside class="cart-summary-card">
+    <!-- =======================
+         오른쪽: 결제 요약 + 버튼
+    ======================== -->
+    <aside class="cart-summary-card"> <!-- 결제 정보 요약 박스 -->
+
       <div class="cart-summary-row">
-        <span>총 상품 금액</span>
+        <span>총 상품 금액</span> <!-- 총합 -->
         <span id="cartTotalPrice" class="cart-summary-price">0원</span>
       </div>
+
       <div class="cart-summary-row">
         <span>배송비</span>
-        <span>+ 0원</span>
-      </div>
-      <div class="cart-summary-row total">
-        <span>결제 예정 금액</span>
-        <span id="cartFinalPrice">0원</span>
+        <span>+ 0원</span> <!-- 현재 배송비 0원 정책 -->
       </div>
 
+      <div class="cart-summary-row total"> <!-- 합계 강조 -->
+        <span>결제 예정 금액</span>
+        <span id="cartFinalPrice">0원</span> <!-- 최종 결제 금액 -->
+      </div>
+
+      <!-- 전체 상품 구매 버튼 (cart.js에서 이벤트 처리) -->
       <button class="cart-order-btn" id="btnOrderAll">
         총 상품 구매하기
       </button>
+
     </aside>
   </div>
+
 </div>
+
 </body>
 </html>
-
