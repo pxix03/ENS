@@ -1,51 +1,64 @@
-<!DOCTYPE html>
-<html lang="ko">
+<!DOCTYPE html> <!--이동우 --><!-- HTML5 문서 선언 -->
+<html lang="ko"> <!-- 문서 언어를 한국어로 설정 -->
 <head>
-<meta charset="UTF-8">
-<title>ENS 쇼핑</title>
+<meta charset="UTF-8"> <!-- UTF-8 문자 인코딩 -->
+<title>ENS 쇼핑</title> <!-- 브라우저 탭 제목 -->
+
+<!-- 외부 CSS 불러오기 -->
 <link rel="stylesheet" href="style.css">
+
+<!-- 데이터(상품 목록) 불러오기 -->
 <script src="data.js"></script>
+
+<!-- 검색 기능 스크립트 -->
 <script src="search.js" defer></script>
+
+<!-- 로그인 / 회원 기능 스크립트 -->
 <script src="auth.js" defer></script>
+
+<!-- 장바구니 기능 스크립트 -->
 <script src="cart.js" defer></script>
+
+<!-- 좌측 카테고리 히스토리(뒤로가기/앞으로가기 동기화 기능) -->
 <script src="tabs-history.js"></script>
 </head>
+
 <body>
 <!-- ===== 공통 헤더 ===== -->
-<div class="header">
-  <div class="top-row">
-    <a href="index.html" class="logo">ENS</a>
-    <div class="search-box">
-      <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
+<div class="header"> <!-- 전체 헤더 영역 -->
+  <div class="top-row"> <!-- 로고 + 검색 + 로그인 영역 -->
+    <a href="index.html" class="logo">ENS</a> <!-- 로고 클릭 시 홈으로 이동 -->
+
+    <div class="search-box"> <!-- 상단 검색박스 -->
+      <input id="globalSearch" type="text" placeholder="검색어를 입력하세요"> <!-- 검색 입력창 -->
     </div>
 
-    <div class="header-user" id="userDisplay"></div>
+    <div class="header-user" id="userDisplay"></div> <!-- 로그인 시 사용자 정보 표시 -->
   </div>
 
-  <div class="categories">
-  <button onclick="location.href='index.html'">홈</button>
-  <button onclick="location.href='nba.html'">NBA</button>
-  <button onclick="location.href='epl.html'">EPL</button>
-  <button onclick="location.href='esports.html'">E-스포츠</button>
-  <button onclick="location.href='shop.html'">쇼핑</button>
-  <button onclick="location.href='community.html'">커뮤니티</button>
-  <button onclick="location.href='game.html'">경기</button>
+  <div class="categories"> <!-- 상단 네비게이션 버튼 -->
+    <button onclick="location.href='index.html'">홈</button>
+    <button onclick="location.href='nba.html'">NBA</button>
+    <button onclick="location.href='epl.html'">EPL</button>
+    <button onclick="location.href='esports.html'">E-스포츠</button>
+    <button onclick="location.href='shop.html'">쇼핑</button>
+    <button onclick="location.href='community.html'">커뮤니티</button>
+    <button onclick="location.href='game.html'">경기</button>
   </div>
 </div>
 
-<!-- 검색 결과 박스 -->
+<!-- 검색 결과 자동 완성 박스 -->
 <div id="searchResultBox" class="search-result-box"></div>
-
 
 <!-- ============================
      쇼핑 콘텐츠
 ============================= -->
-<div class="shop-container">
+<div class="shop-container"> <!-- 쇼핑 전체 영역 -->
 
   <!-- 상단 배너 -->
-  <div class="shop-banner">
-    <img src="https://images.unsplash.com/photo-1461897104016-0b3b00cc81ee?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="쇼핑 배너">
-    <div class="shop-banner-text">
+  <div class="shop-banner"> <!-- 큰 홍보 배너 -->
+    <img src="https://images.unsplash.com/photo-1461897104016-0b3b00cc81ee?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="쇼핑 배너"> <!-- 배너 이미지 -->
+    <div class="shop-banner-text"> <!-- 배너에 덮이는 텍스트 -->
       <div class="shop-banner-sub">스포츠 팬들을 위한 특별 기획전</div>
       <div class="shop-banner-main">PREMIUM SPORTS SHOP</div>
       <div class="shop-banner-desc">농구 · 축구 · E-스포츠 용품을 한번에 만나보세요</div>
@@ -53,11 +66,12 @@
   </div>
 
   <!-- 좌측 카테고리 + 중앙 상품 영역 -->
-  <div class="shop-layout">
+  <div class="shop-layout"> <!-- 전체 레이아웃 영역 -->
+
     <!-- 왼쪽 : 카테고리 -->
-    <aside class="shop-sidebar">
+    <aside class="shop-sidebar"> <!-- 왼쪽 카테고리 영역 -->
       <div class="shop-sidebar-title">카테고리</div>
-      <ul class="shop-category-list">
+      <ul class="shop-category-list"> <!-- 카테고리 리스트 -->
         <li><button class="shop-cat-btn active" data-cat="ALL" onclick="changeShopCategory('ALL', this)">전체 보기</button></li>
         <li><button class="shop-cat-btn" data-cat="농구" onclick="changeShopCategory('농구', this)">농구</button></li>
         <li><button class="shop-cat-btn" data-cat="축구" onclick="changeShopCategory('축구', this)">축구</button></li>
@@ -67,16 +81,16 @@
     </aside>
 
     <!-- 가운데 : 상품 리스트 -->
-    <main class="shop-main">
-      <div class="shop-main-header">
+    <main class="shop-main"> <!-- 상품 목록 메인 영역 -->
+      <div class="shop-main-header"> <!-- 쇼핑 제목 + 상품 수 + 장바구니 버튼 -->
         <h1>쇼핑</h1>
         <div class="shop-main-info">
-          총 <span id="shopCount">0</span>개 상품
+          총 <span id="shopCount">0</span>개 상품 <!-- 필터링된 상품 수 표시 -->
           <button type="button" class="shop-cart-link" onclick="goCartPage()">장바구니 보기</button>
         </div>
       </div>
 
-      <div id="shopList" class="products-grid"></div>
+      <div id="shopList" class="products-grid"></div> <!-- 상품들이 채워질 공간 -->
     </main>
   </div>
 </div>
@@ -85,87 +99,91 @@
      JS
 ============================= -->
 <script>
-let currentShopCategory = "ALL";
+let currentShopCategory = "ALL";  // 현재 선택된 카테고리 저장 변수
 
-// 상품 이름으로 카테고리 자동 판별
+// 상품 이름에서 카테고리를 자동 판별하는 함수
 function getShopCategory(item) {
   const name = item.name || "";
   if (name.includes("농구")) return "농구";
   if (name.includes("축구")) return "축구";
   if (name.includes("게이밍") || name.toLowerCase().includes("gaming")) return "E-스포츠";
-  return "용품"; // 나머지
+  return "용품"; // 어떤 조건에도 안맞으면 '용품'
 }
 
-// 카테고리 변경 + 히스토리 반영
+// 카테고리 변경 + 브라우저 히스토리 반영
 function changeShopCategory(cat, btn, push = true) {
-  currentShopCategory = cat;
+  currentShopCategory = cat; // 현재 카테고리 저장
 
-  // 왼쪽 버튼 active 처리
+  // 왼쪽 버튼 active 업데이트
   document.querySelectorAll(".shop-cat-btn").forEach(b => {
     const btnCat = b.dataset.cat;
     b.classList.toggle("active", btnCat === cat);
   });
-  if (btn) {
-    btn.classList.add("active");
-  }
 
-  renderShop();
+  if (btn) btn.classList.add("active");
 
-  // URL / 히스토리 (?scat=농구 등)
+  renderShop(); // UI 렌더링 실행
+
+  // URL 뒤에 ?scat=카테고리를 붙여 브라우저 히스토리 기록
   if (window.updateTabHistory && push) {
     updateTabHistory("scat", cat, true);
   }
 }
 
-
-// 상품 리스트 렌더링
+// 상품 리스트를 화면에 출력하는 함수
 function renderShop(){
   const box = document.getElementById("shopList");
   const countEl = document.getElementById("shopCount");
   if (!box) return;
 
-  box.innerHTML = "";
+  box.innerHTML = ""; // 기존 상품 지우기
 
-  // 선택된 카테고리 기준 필터링
+  // 현재 카테고리 기준 상품 필터링
   const filtered = shopData.filter(item => {
     const cat = getShopCategory(item);
     return currentShopCategory === "ALL" || cat === currentShopCategory;
   });
 
+  // 상품 수 표시
   if (countEl) countEl.textContent = filtered.length;
 
+  // 상품이 없으면 메시지 출력
   if (filtered.length === 0) {
     box.innerHTML = `<div class="empty-post">해당 카테고리에 상품이 없습니다.</div>`;
     return;
   }
 
+  // 상품 HTML 생성
   filtered.forEach(item => {
     box.innerHTML += `
       <div class="product" onclick='openProductDetail("${item.name}")'>
-        <img src="${item.img}">
-        <div class="product-title">${item.name}</div>
-        <div class="product-price">${item.price}</div>
+        <img src="${item.img}"> <!-- 상품 이미지 -->
+        <div class="product-title">${item.name}</div> <!-- 상품명 -->
+        <div class="product-price">${item.price}</div> <!-- 가격 -->
       </div>
     `;
   });
 }
+
+// 상품 클릭 시 상품 상세 페이지로 이동
 function openProductDetail(name) {
   const url = `product.html?name=${encodeURIComponent(name)}`;
   location.href = url;
 }
 
-// 카테고리 + 히스토리 초기 세팅
+// 브라우저 히스토리 초기 세팅
 if (window.setupTabHistory) {
   setupTabHistory("scat", "ALL", (cat, push) => {
     const btn = document.querySelector(`.shop-cat-btn[data-cat="${cat}"]`);
     changeShopCategory(cat, btn || null, push);
   });
 } else {
-  // fallback
+  // 히스토리가 없으면 기본 ALL로 설정
   const btn = document.querySelector('.shop-cat-btn[data-cat="ALL"]');
   changeShopCategory("ALL", btn || null, false);
 }
 
+// 장바구니 페이지 이동
 function goCartPage() {
   location.href = "cart.html";
 }
@@ -174,4 +192,3 @@ function goCartPage() {
 
 </body>
 </html>
-
