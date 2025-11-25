@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>상품 상세 - ENS 쇼핑</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+  <script src="search.js" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="cart.js" defer></script>
+  <script src="tabs-history.js"></script>
+
+</head>
+<body>
+<!-- 공통 헤더 -->
+<div class="header">
+  <div class="top-row">
+    <a href="index.html" class="logo">ENS</a>
+
+    <div class="search-box">
+      <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
+    </div>
+
+    <div class="header-user" id="userDisplay"></div>
+  </div>
+
+  <div class="categories">
+  <button onclick="location.href='index.html'">홈</button>
+  <button onclick="location.href='nba.html'">NBA</button>
+  <button onclick="location.href='epl.html'">EPL</button>
+  <button onclick="location.href='esports.html'">E-스포츠</button>
+  <button onclick="location.href='shop.html'">쇼핑</button>
+  <button onclick="location.href='community.html'">커뮤니티</button>
+  <button onclick="location.href='game.html'">경기</button>
+  </div>
+</div>
+
+<!-- 통합 검색 결과 영역 -->
+<div id="searchResultBox" class="search-result-box"></div>
+
+<!-- ====== 상품 상세 ====== -->
+<div class="product-detail-container">
+  <div class="product-detail-layout">
+
+    <!-- 왼쪽: 갤러리(썸네일 + 메인이미지) -->
+    <div class="product-gallery">
+      <div class="product-thumbs" id="thumbList">
+        <!-- JS에서 썸네일 버튼 생성 -->
+      </div>
+
+      <div class="product-main-image">
+        <img id="detailImg" src="" alt="">
+      </div>
+    </div>
+
+    <!-- 오른쪽: 정보 / 버튼 -->
+    <div class="product-detail-info">
+      <h1 id="detailName"></h1>
+      <div id="detailPrice" class="product-detail-price"></div>
+      <p id="detailDesc" class="product-detail-desc"></p>
+
+      <div class="product-detail-actions">
+        <button id="btnCart" class="btn-cart">장바구니 담기</button>
+        <button id="btnBuy" class="btn-buy">바로구매</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 아래: 탭(정보 / 구매후기) -->
+  <div class="product-detail-tabs">
+    <div class="product-tabs">
+      <button class="product-tab-btn active" data-tab="info">정보</button>
+      <button class="product-tab-btn" data-tab="review">구매후기</button>
+    </div>
+
+    <div class="product-tab-panels">
+      <div id="tab-info" class="product-tab-panel active">
+        <!-- JS에서 상품 정보 채워 넣음 -->
+      </div>
+
+    <div id="tab-review" class="product-tab-panel">
+        <section class="comment-section">
+        <h3 class="comment-title">
+        구매후기
+        <span id="reviewCount" class="comment-count"></span>
+        </h3>
+
+        <!-- 후기 리스트 -->
+        <div id="reviewList" class="comment-list"></div>
+
+        <!-- 후기 작성 -->
+        <div class="comment-write">
+        <textarea id="reviewInput" placeholder="구매 후기를 남겨보세요"></textarea>
+        <button onclick="saveReview()">등록</button>
+        </div>
+        </section>
+        </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== 공통: URL 파라미터 =====
+  function getQueryParam(key) {
+    return new URLSearchParams(location.search).get(key);
+  }
+
+  const productName = getQueryParam("name");
+  let currentProduct = null;
+
+  // HTML 이스케이프 (XSS 방지용)
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>"']/g, function (m) {
+      return ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[m];
+    });
+  }
+
+  // ===== 구매후기 저장용 공통 =====
+  function getReviewStore() {
+    try {
+      const raw = localStorage.getItem("product_reviews") || "{}";
+      const obj = JSON.parse(raw);
+      return (obj && typeof obj === "object") ? obj : {};
+    } catch (e) {
+      return {};
+    }
+  }
+  function saveReviewStore(store) {
+    localStorage.setItem("product_reviews", JSON.stringify(store));
+  }
+
+  function renderReviews() {
+    const listBox = document.getElementById("reviewList");
+    const countEl = document.getElementById("reviewCount");
+    if (!listBox || !productName) return;
+
+    const store = getReviewStore();
+    const list = Array.isArray(store[productName]) ? store[productName] : [];
+
+    if (countEl) {
+      countEl.textContent = list.length ? ` (${list.length})` : "";
+    }
+
+    if (!list.length) {
+      listBox.innerHTML = `<div class="empty-comment">첫 구매후기를 남겨보세요.</div>`;
+      return;
+    }
+
+    listBox.innerHTML = list.map(r => {
+      const textHtml = escapeHtml(r.text || "").replace(/\n/g, "<br>");
+      let dateTxt = "";
+      if (r.createdAt) {
+        const d = new Date(r.createdAt);
+        dateTxt = d.toLocaleString();
+      }
+      return `
+        <div class="comment-item">
+          <div class="comment-meta">익명 · ${dateTxt}</div>
+          <div class="comment-text">${textHtml}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function saveReview() {
+    const input = document.getElementById("reviewInput");
+    if (!input || !productName) return;
+
+    const text = input.value.trim();
+    if (!text) {
+      alert("구매 후기를 입력하세요.");
+      return;
+    }
+
+    const store = getReviewStore();
+    if (!Array.isArray(store[productName])) {
+      store[productName] = [];
+    }
+
+    store[productName].push({
+      text,
+      createdAt: Date.now()
+    });
+
+    saveReviewStore(store);
+    input.value = "";
+    renderReviews();
+  }
+
+  // ===== 상품 정보 렌더링 =====
+  function renderProduct() {
+    const container = document.querySelector(".product-detail-container");
+
+    if (!productName) {
+      container.innerHTML = '<p class="empty-post">상품 정보가 없습니다.</p>';
+      return;
+    }
+
+    const item = shopData.find(p => p.name === productName);
+    currentProduct = item;
+
+    if (!item) {
+      container.innerHTML = '<p class="empty-post">상품을 찾을 수 없습니다.</p>';
+      return;
+    }
+
+    const imgEl   = document.getElementById("detailImg");
+    const nameEl  = document.getElementById("detailName");
+    const priceEl = document.getElementById("detailPrice");
+    const descEl  = document.getElementById("detailDesc");
+    const thumbList = document.getElementById("thumbList");
+    const tabInfo = document.getElementById("tab-info");
+
+    document.title = item.name + " - ENS 쇼핑";
+
+    nameEl.textContent = item.name;
+    priceEl.textContent = item.price;
+    descEl.textContent = item.desc || "";
+
+    tabInfo.innerHTML = `
+      <h2 class="tab-info-title">상품 정보</h2>
+      <p>${item.desc || "상품 정보가 준비 중입니다."}</p>
+      <ul class="tab-info-list">
+        <li>브랜드: ENS SPORTS (데모)</li>
+        <li>배송: 평균 1~2일 소요</li>
+        <li>교환/반품: 수령 후 7일 이내 가능</li>
+      </ul>
+    `;
+
+    const images = (item.images && item.images.length)
+      ? item.images
+      : [item.img, item.img, item.img];
+
+    imgEl.src = images[0];
+    imgEl.alt = item.name;
+
+    thumbList.innerHTML = images.map((src, idx) => `
+      <button class="product-thumb ${idx === 0 ? "active" : ""}" data-src="${src}">
+        <img src="${src}" alt="${item.name} 썸네일 ${idx + 1}">
+      </button>
+    `).join("");
+
+    thumbList.addEventListener("click", (e) => {
+      const btn = e.target.closest(".product-thumb");
+      if (!btn) return;
+
+      const src = btn.dataset.src;
+      imgEl.src = src;
+
+      document.querySelectorAll(".product-thumb").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+
+    renderReviews();
+  }
+  // 실제 렌더링 실행
+renderProduct();
+
+let currentProductTab = "info";
+
+// 탭 전환 + 히스토리
+function changeProductTab(target, push = true) {
+  currentProductTab = target;
+
+  // 버튼 active
+  document.querySelectorAll(".product-tab-btn").forEach(b => {
+    const t = b.dataset.tab;
+    b.classList.toggle("active", t === target);
+  });
+
+  // 패널 active
+  document.querySelectorAll(".product-tab-panel").forEach(panel => {
+    panel.classList.toggle("active", panel.id === "tab-" + target);
+  });
+
+  // URL / 히스토리 (?ptab=review 등)
+  if (window.updateTabHistory && push) {
+    updateTabHistory("ptab", target, true);
+  }
+}
+
+// 버튼 클릭 이벤트
+document.querySelectorAll(".product-tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.dataset.tab;  // "info" or "review"
+    changeProductTab(target, true);
+  });
+});
+
+// 초기 탭 + 뒤로가기 연동
+if (window.setupTabHistory) {
+  setupTabHistory("ptab", "info", (tab, push) => {
+    changeProductTab(tab, push);
+  });
+} else {
+  changeProductTab("info", false);
+}
+
+
+</script>
+
+
+</body>
+</html>
+

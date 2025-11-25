@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>ENS 경기 기록</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+  <script src="search.js" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="cart.js" defer></script>
+  <script src="tabs-history.js"></script>
+
+</head>
+<body>
+<!-- 공통 헤더 + 검색 결과 박스 -->
+<div class="header">
+  <div class="top-row">
+    <a href="index.html" class="logo">ENS</a>
+    <div class="search-box">
+      <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
+    </div>
+    <div class="header-user" id="userDisplay"></div>
+  </div>
+
+  <div class="categories">
+  <button onclick="location.href='index.html'">홈</button>
+  <button onclick="location.href='nba.html'">NBA</button>
+  <button onclick="location.href='epl.html'">EPL</button>
+  <button onclick="location.href='esports.html'">E-스포츠</button>
+  <button onclick="location.href='shop.html'">쇼핑</button>
+  <button onclick="location.href='community.html'">커뮤니티</button>
+  <button onclick="location.href='game.html'">경기</button>
+  </div>
+</div>
+
+<div id="searchResultBox" class="search-result-box"></div>
+
+<!-- ==============================
+     경기 상세 페이지
+================================== -->
+<main class="match-page">
+  <!-- 상단 스코어보드 -->
+  <section class="match-header">
+    <div class="match-header-top">
+      <button class="match-back-btn" onclick="goBackFromMatch()"><span>◀</span>
+      <span>경기 일정으로</span></button>
+    </div>
+    <div class="match-scoreboard">
+      <div class="match-score-top">
+        <div class="match-title" id="matchLeague"></div>
+        <div class="match-status" id="matchStatus">경기전</div>
+      </div>
+
+      <div class="match-score-main">
+        <div class="match-team match-team-home">
+          <div class="match-team-name" id="homeTeamName">홈팀</div>
+          <div class="match-team-sub" id="homeTeamSub"></div>
+        </div>
+
+        <div class="match-center">
+          <div class="match-score-row">
+            <span class="match-score-big" id="homeScore">-</span>
+            <span class="match-score-sep">:</span>
+            <span class="match-score-big" id="awayScore">-</span>
+          </div>
+          <div class="match-meta">
+            <span id="matchDate"></span>
+            <span id="matchVenue"></span>
+          </div>
+        </div>
+
+        <div class="match-team match-team-away">
+          <div class="match-team-name" id="awayTeamName">원정팀</div>
+          <div class="match-team-sub" id="awayTeamSub"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 좌측 : 기록 탭 / 테이블 -->
+  <section class="match-main">
+    <div class="match-tabs">
+      <button class="match-tab-btn active" data-tab="record">기록</button>
+      <button class="match-tab-btn" data-tab="summary">경기 요약</button>
+    </div>
+
+    <div class="match-tab-content" id="tab-record">
+      <h2 class="match-subtitle">팀 기록</h2>
+      <table class="record-table">
+        <thead>
+          <tr>
+            <th>팀</th>
+            <th>득점</th>
+            <th>리바운드</th>
+            <th>어시스트</th>
+            <th>스틸</th>
+            <th>3점슛</th>
+          </tr>
+        </thead>
+        <tbody id="teamRecordBody">
+          <!-- JS에서 채움 -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="match-tab-content hidden" id="tab-summary">
+      <h2 class="match-subtitle">경기 요약</h2>
+      <p id="matchSummaryText">
+        경기 요약 내용이 여기에 표시됩니다. data.js의 desc 값을 기반으로 간단한 설명을 보여줍니다.
+      </p>
+    </div>
+  </section>
+
+  <!-- 우측 : 승부예측 + 댓글 -->
+  <aside class="match-side">
+    <div class="match-side-card">
+      <h3>승부 예측</h3>
+      <p class="side-caption">어느 팀이 더 강하다고 생각하나요?</p>
+
+      <div class="predict-bar">
+        <div class="predict-row">
+          <span id="predictHomeName">홈팀</span>
+          <span id="predictHomePercent">0%</span>
+        </div>
+        <div class="predict-track">
+          <div class="predict-fill" id="predictHomeFill" style="width:0%;"></div>
+        </div>
+
+        <div class="predict-row">
+          <span id="predictAwayName">원정팀</span>
+          <span id="predictAwayPercent">0%</span>
+        </div>
+        <div class="predict-track">
+          <div class="predict-fill" id="predictAwayFill" style="width:0%;"></div>
+        </div>
+      </div>
+
+      <div class="predict-actions">
+        <button id="btnVoteHome">홈팀 승!</button>
+        <button id="btnVoteAway">원정팀 승!</button>
+      </div>
+
+      <p class="side-caption small" id="predictTotalText">총 0표 투표됨</p>
+    </div>
+
+    <div class="match-side-card">
+      <h3>응원 댓글</h3>
+      <p class="side-caption">경기 한 줄 평을 남겨보세요.</p>
+
+      <div class="comment-form">
+        <textarea id="commentInput" rows="3" placeholder="메시지를 입력해주세요"></textarea>
+        <button id="commentSubmit">등록</button>
+      </div>
+
+      <ul class="comment-list" id="commentList">
+        <!-- JS에서 댓글 렌더링 -->
+      </ul>
+    </div>
+  </aside>
+</main>
+
+<script>
+  function goBackFromMatch() {
+  // 그냥 리스트 페이지로 보내기 (경기 일정으로)
+  window.location.href = "game.html";
+  }
+
+  // 쿼리 파라미터 읽기
+  function getQueryParam(key) {
+    return new URLSearchParams(window.location.search).get(key);
+  }
+
+  const matchParam = getQueryParam("match");
+  const matchName = matchParam ? decodeURIComponent(matchParam) : null;
+  let matchData = null;
+
+  if (matchName) {
+    matchData = gameData.find(g => g.name === matchName);
+  }
+  if (!matchData && gameData.length) {
+    matchData = gameData[0]; // 혹시 못 찾으면 첫 경기 사용
+  }
+
+  const parts = (matchData.name || "").split("vs");
+  const homeTeam = (parts[0] || "").trim();
+  const awayTeam = (parts[1] || "").trim();
+  const matchKey = "game_" + encodeURIComponent(matchData.name || "");
+
+  /* ---------- 스코어보드 ---------- */
+  function initHeader() {
+    const leagueEl = document.getElementById("matchLeague");
+    const dateEl   = document.getElementById("matchDate");
+    const venueEl  = document.getElementById("matchVenue");
+
+    leagueEl.textContent = matchData.type || "경기";
+    dateEl.textContent   = matchData.date || "날짜 미정";
+    venueEl.textContent  = matchData.venue ? " · " + matchData.venue : "";
+
+    document.getElementById("matchStatus").textContent =
+      matchData.status || "경기전";
+
+    document.getElementById("homeScore").textContent =
+      (matchData.homeScore !== undefined) ? matchData.homeScore : "-";
+    document.getElementById("awayScore").textContent =
+      (matchData.awayScore !== undefined) ? matchData.awayScore : "-";
+
+    document.getElementById("homeTeamName").textContent = homeTeam || "홈팀";
+    document.getElementById("awayTeamName").textContent = awayTeam || "원정팀";
+
+    document.getElementById("predictHomeName").textContent = homeTeam || "홈팀";
+    document.getElementById("predictAwayName").textContent = awayTeam || "원정팀";
+
+    document.getElementById("matchSummaryText").textContent =
+      matchData.desc || "경기 요약 정보가 없습니다.";
+  }
+
+  /* ---------- 탭(기록 / 요약) ---------- */
+  let currentMatchTab = "record";   // record / summary
+
+// 탭 변경 + 히스토리 반영
+function changeMatchTab(tab, push = true) {
+  currentMatchTab = tab;
+
+  const buttons = document.querySelectorAll(".match-tab-btn");
+  buttons.forEach(btn => {
+    const t = btn.dataset.tab;
+    btn.classList.toggle("active", t === tab);
+  });
+
+  const recordBox = document.getElementById("tab-record");
+  const summaryBox = document.getElementById("tab-summary");
+  if (recordBox && summaryBox) {
+    recordBox.classList.toggle("hidden", tab !== "record");
+    summaryBox.classList.toggle("hidden", tab !== "summary");
+  }
+
+  // URL / 히스토리 (?mdtab=summary 등)
+  if (window.updateTabHistory && push) {
+    updateTabHistory("mdtab", tab, true);
+  }
+}
+
+/* ---------- 탭(기록 / 요약) 초기 이벤트 ---------- */
+function initTabs() {
+  const buttons = document.querySelectorAll(".match-tab-btn");
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const tab = btn.dataset.tab || "record";
+      changeMatchTab(tab, true);
+    });
+  });
+}
+
+
+  /* ---------- 팀 기록 (예시) ---------- */
+  function initTeamRecord() {
+    const body = document.getElementById("teamRecordBody");
+    body.innerHTML = "";
+
+    // data.js 안에 이런 형식으로 넣어두면 사용됨
+    // homeRecord / awayRecord 없으면 0으로 채움
+    const recordHome = matchData.homeRecord || {
+      points: 0, rebounds: 0, assists: 0, steals: 0, threes: 0
+    };
+    const recordAway = matchData.awayRecord || {
+      points: 0, rebounds: 0, assists: 0, steals: 0, threes: 0
+    };
+
+    const rows = [
+      { team: homeTeam || "홈팀", rec: recordHome },
+      { team: awayTeam || "원정팀", rec: recordAway }
+    ];
+
+    rows.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.team}</td>
+        <td>${r.rec.points}</td>
+        <td>${r.rec.rebounds}</td>
+        <td>${r.rec.assists}</td>
+        <td>${r.rec.steals}</td>
+        <td>${r.rec.threes}</td>
+      `;
+      body.appendChild(tr);
+    });
+  }
+
+  /* ---------- 승부 예측 ---------- */
+  const predictKey = matchKey + "_predict";
+  let predictData = { home: 0, away: 0 };
+
+  function loadPrediction() {
+    try {
+      const stored = localStorage.getItem(predictKey);
+      if (stored) predictData = JSON.parse(stored);
+    } catch (e) {}
+    updatePredictionUI();
+  }
+
+  function savePrediction() {
+    try {
+      localStorage.setItem(predictKey, JSON.stringify(predictData));
+    } catch (e) {}
+  }
+
+  function vote(side) {
+    if (side === "home") predictData.home++;
+    if (side === "away") predictData.away++;
+    savePrediction();
+    updatePredictionUI();
+  }
+
+  function updatePredictionUI() {
+    const total = predictData.home + predictData.away;
+    const homePercent = total ? Math.round(predictData.home / total * 100) : 0;
+    const awayPercent = total ? 100 - homePercent : 0;
+
+    document.getElementById("predictHomePercent").textContent = homePercent + "%";
+    document.getElementById("predictAwayPercent").textContent = awayPercent + "%";
+    document.getElementById("predictHomeFill").style.width = homePercent + "%";
+    document.getElementById("predictAwayFill").style.width = awayPercent + "%";
+    document.getElementById("predictTotalText").textContent =
+      "총 " + total + "표 투표됨";
+  }
+
+  /* ---------- 댓글 ---------- */
+  const commentKey = matchKey + "_comments";
+  let comments = [];
+
+  function loadComments() {
+    try {
+      const stored = localStorage.getItem(commentKey);
+      if (stored) comments = JSON.parse(stored);
+    } catch (e) {}
+    renderComments();
+  }
+
+  function saveComments() {
+    try {
+      localStorage.setItem(commentKey, JSON.stringify(comments));
+    } catch (e) {}
+  }
+
+  function addComment(text) {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    const now = new Date();
+    const timeText = now.toLocaleString("ko-KR", {
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+    comments.unshift({
+      text: trimmed,
+      time: timeText
+    });
+    saveComments();
+    renderComments();
+  }
+
+  function renderComments() {
+    const listEl = document.getElementById("commentList");
+    listEl.innerHTML = "";
+
+    if (!comments.length) {
+      const li = document.createElement("li");
+      li.className = "comment-empty";
+      li.textContent = "첫 댓글을 남겨보세요.";
+      listEl.appendChild(li);
+      return;
+    }
+
+    comments.forEach(c => {
+      const li = document.createElement("li");
+      li.className = "comment-item";
+      li.innerHTML = `
+        <div class="comment-text">${c.text}</div>
+        <div class="comment-meta">${c.time}</div>
+      `;
+      listEl.appendChild(li);
+    });
+  }
+
+  function initCommentForm() {
+    const input = document.getElementById("commentInput");
+    const btn   = document.getElementById("commentSubmit");
+
+    btn.addEventListener("click", () => {
+      addComment(input.value);
+      input.value = "";
+      input.focus();
+    });
+  }
+
+   /* ---------- 초기화 ---------- */
+  initHeader();
+  initTabs();
+  initTeamRecord();
+  loadPrediction();
+  loadComments();
+  initCommentForm();
+
+  // 탭 히스토리 (기록 / 요약)
+  if (window.setupTabHistory) {
+    setupTabHistory("mdtab", "record", (tab, push) => {
+      changeMatchTab(tab, push);
+    });
+  } else {
+    // tabs-history 를 못 쓰면 기본은 '기록' 탭
+    changeMatchTab("record", false);
+  }
+
+  document.getElementById("btnVoteHome").addEventListener("click", () => vote("home"));
+  document.getElementById("btnVoteAway").addEventListener("click", () => vote("away"));
+
+</script>
+
+</body>
+</html>
+

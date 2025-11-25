@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>ENS - Esports</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+  <script src="search.js" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="cart.js" defer></script>
+  <script src="tabs-history.js"></script>
+
+</head>
+<body>
+  <!-- ===== 공통 헤더 (index.html에서 복사) ===== -->
+  <div class="header">
+    <div class="top-row">
+      <a href="index.html" class="logo">ENS</a>
+      <div class="search-box">
+        <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
+      </div>
+      <div class="header-user" id="userDisplay"></div>
+    </div>
+
+    <div class="categories">
+      <button onclick="location.href='index.html'">홈</button>
+      <button onclick="location.href='nba.html'">NBA</button>
+      <button onclick="location.href='epl.html'">EPL</button>
+      <button onclick="location.href='esports.html'">E-스포츠</button>
+      <button onclick="location.href='shop.html'">쇼핑</button>
+      <button onclick="location.href='community.html'">커뮤니티</button>
+      <button onclick="location.href='game.html'">경기</button>
+    </div>
+  </div>
+
+  <!-- 검색결과 박스 -->
+  <div id="searchResultBox" class="search-result-box"></div>
+
+  <!-- 메인 콘텐츠 (NBA 카테고리 전용) -->
+  <div id="mainContent" class="main-content-area"></div>
+
+  <script>
+    // 이 페이지 전용 카테고리 상수
+    const CATEGORY = "E-스포츠";
+
+    // 카테고리 상단(제목 + 탭) 뼈대
+    function renderCategoryHeader(cat) {
+      const box = document.getElementById("mainContent");
+      if (!box) return;
+
+      box.innerHTML = `
+        <div class="category-header-row">
+          <div class="section-title">${cat}</div>
+          <div class="category-mode-tabs">
+            <button class="category-mode-btn active"
+                    data-mode="players"
+                    onclick="changeCategoryMode('players')">선수찾기</button>
+            <button class="category-mode-btn"
+                    data-mode="standings"
+                    onclick="changeCategoryMode('standings')">순위</button>
+          </div>
+        </div>
+        <div id="categoryPlayers" class="category-panel"></div>
+        <div id="categoryStandings" class="category-panel hidden"></div>
+      `;
+    }
+
+    // 탭 1 : 선수찾기
+   function renderCategoryPlayers(cat) {
+        const panel = document.getElementById("categoryPlayers");
+        if (!panel) return;
+
+        const list = (typeof playerData !== "undefined" && playerData[cat]) ? playerData[cat] : [];
+
+        if (!list.length) {
+            panel.innerHTML = `
+            <div style="padding:30px 10px; opacity:.7;">
+                등록된 선수가 없습니다.
+            </div>`;
+            return;
+        }
+
+        let html = `<div class="products-scroll">`;
+        list.forEach(p => {
+            const detailUrl = `player.html?cat=${encodeURIComponent(cat)}&name=${encodeURIComponent(p.name)}`;
+
+            html += `
+            <a class="product" href="${detailUrl}">
+                <img src="${p.img}" alt="${p.name}">
+                <div class="product-title">${p.name}</div>
+            </a>`;
+        });
+        html += "</div>";
+
+        panel.innerHTML = html;
+    }
+
+       // 탭 2 : 순위 (LEGEND / RISE 그룹)
+    function renderCategoryStandings(cat) {
+      const panel = document.getElementById("categoryStandings");
+      if (!panel) return;
+
+      const all = (typeof standingsData !== "undefined" && standingsData[cat])
+        ? standingsData[cat]
+        : [];
+
+      if (!all.length) {
+        panel.innerHTML = `
+          <div style="padding:30px 10px; opacity:.7;">
+            순위 정보가 준비 중입니다.
+          </div>`;
+        return;
+      }
+
+      const groups = ["LEGEND", "RISE"];
+      const groupTitle = {
+        LEGEND: "LEGEND 그룹",
+        RISE: "RISE 그룹"
+      };
+
+      let html = "";
+
+      groups.forEach(key => {
+        const list = all.filter(t => t.group === key);
+        if (!list.length) return;
+
+        const rows = list.map((t, idx) => {
+          const rank   = (t.rank != null) ? t.rank : (idx + 1);
+          const win    = (t.win  != null) ? t.win  : 0;
+          const loss   = (t.loss != null) ? t.loss : 0;
+          const diff   = (t.diff != null) ? t.diff : 0;
+          const games  = win + loss;
+          const winPct = games > 0 ? (win / games).toFixed(2) : "0.00";
+          const kda    = (t.kda != null) ? t.kda : "-";
+          const kills  = (t.kills   != null) ? t.kills.toLocaleString()   : "-";
+          const deaths = (t.deaths  != null) ? t.deaths.toLocaleString()  : "-";
+          const assists= (t.assists != null) ? t.assists.toLocaleString() : "-";
+
+          return `
+            <tr>
+              <td>${rank}</td>
+              <td class="league-standing-team">${t.team}</td>
+              <td>${win}</td>
+              <td>${loss}</td>
+              <td>${diff}</td>
+              <td>${winPct}</td>
+              <td>${kda}</td>
+              <td>${kills}</td>
+              <td>${deaths}</td>
+              <td>${assists}</td>
+            </tr>`;
+        }).join("");
+
+        html += `
+          <div class="league-group-block">
+            <div class="league-group-title">${groupTitle[key] || key}</div>
+            <div class="league-standing-wrap">
+              <table class="league-standing-table">
+                <thead>
+                  <tr>
+                    <th>순위</th>
+                    <th>팀</th>
+                    <th>승</th>
+                    <th>패</th>
+                    <th>득실차</th>
+                    <th>승률</th>
+                    <th>KDA</th>
+                    <th>킬</th>
+                    <th>데스</th>
+                    <th>어시스트</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+      panel.innerHTML = html;
+    }
+
+    // 탭 전환 + 히스토리 반영
+    function changeCategoryMode(mode, push = true) {
+      const playersPanel = document.getElementById("categoryPlayers");
+      const standingsPanel = document.getElementById("categoryStandings");
+
+      if (playersPanel && standingsPanel) {
+        playersPanel.classList.toggle("hidden", mode !== "players");
+        standingsPanel.classList.toggle("hidden", mode !== "standings");
+      }
+
+      document
+        .querySelectorAll(".category-mode-btn")
+        .forEach(btn => {
+          const btnMode = btn.dataset.mode;
+          btn.classList.toggle("active", btnMode === mode);
+        });
+
+      // 공통 유틸이 있을 때만 호출 (없어도 에러 안 나게)
+      if (push && window.updateTabHistory) {
+        // key: "tab" → URL: ?tab=players / ?tab=standings 이런 식
+        updateTabHistory("tab", mode, true);
+      }
+    }
+    
+      document.addEventListener("DOMContentLoaded", () => {
+      renderCategoryHeader(CATEGORY);
+      renderCategoryPlayers(CATEGORY);
+      renderCategoryStandings(CATEGORY);
+
+      if (window.setupTabHistory) {
+        // key "tab", 기본값 "players"
+        setupTabHistory("tab", "players", (mode, push) => {
+          // popstate 에서도, URL에서 처음 들어올 때도 모두 여기로 옴
+          changeCategoryMode(mode, push);
+        });
+      } else {
+        // 혹시 tabs-history.js 를 안 썼을 때 대비
+        changeCategoryMode("players", false);
+      }
+    });
+  </script>
+</body>
+</html>

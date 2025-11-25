@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>선수 상세 - ENS</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="data.js"></script>
+  <script src="search.js" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="cart.js" defer></script>
+  <script src="tabs-history.js"></script>
+</head>
+<body class="player-page">
+<!-- 공통 헤더 -->
+<div class="header">
+  <div class="top-row">
+    <a href="index.html" class="logo">ENS</a>
+
+    <div class="search-box">
+      <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
+    </div>
+
+    <div class="header-user" id="userDisplay"></div>
+  </div>
+
+  <div class="categories">
+    <button onclick="location.href='index.html'">홈</button>
+    <button onclick="location.href='nba.html'">NBA</button>
+    <button onclick="location.href='epl.html'">EPL</button>
+    <button onclick="location.href='esports.html'">E-스포츠</button>
+    <button onclick="location.href='shop.html'">쇼핑</button>
+    <button onclick="location.href='community.html'">커뮤니티</button>
+    <button onclick="location.href='game.html'">경기</button>
+  </div>
+</div>
+
+<!-- 통합 검색 결과 박스 -->
+<div id="searchResultBox" class="search-result-box"></div>
+
+<!-- ===== 선수 상세 메인 영역 ===== -->
+<main class="product-detail-container">
+  <div class="product-detail-layout">
+    <!-- 왼쪽: 이미지 -->
+    <section class="product-detail-left">
+      <div class="product-gallery">
+        <!-- 썸네일은 일단 한 장만 사용 -->
+        <div class="product-thumbs">
+          <button class="product-thumb active" id="thumbMain">
+            <img id="playerThumbImg" src="" alt="">
+          </button>
+        </div>
+
+        <div class="product-main-image">
+          <img id="playerMainImg" src="" alt="">
+        </div>
+      </div>
+    </section>
+
+    <!-- 오른쪽: 선수 정보 (위키 스타일 카드) -->
+    <section class="product-detail-right">
+      <div class="player-info-card">
+        <div class="player-info-header">
+          <div class="player-info-header-top">
+            <span class="player-info-tag">PLAYER</span>
+            <span class="player-info-league" id="playerCategory">[카테고리]</span>
+          </div>
+          <h1 class="player-info-name" id="playerName">선수 이름</h1>
+        </div>
+
+        <table class="player-info-table">
+          <tbody>
+            <tr>
+              <th>본명</th>
+              <td id="playerRlName"></td>
+            </tr>
+            <tr>
+              <th>소속</th>
+              <td id="playerTeam"></td>
+            </tr>
+            <tr>
+              <th>출생</th>
+              <td id="playerBirth"></td>
+            </tr>
+            <tr>
+              <th>국적</th>
+              <td id="playerNation"></td>
+            </tr>
+            <tr>
+              <th>포지션</th>
+              <td id="playerPosition"></td>
+            </tr>
+            <tr>
+              <th>상금 및 연봉</th>
+              <td id="playerPrize"></td>
+            </tr>
+            <tr>
+              <th>데뷔</th>
+              <td id="playerDebut"></td>
+            </tr>
+            <tr>
+              <th>키</th>
+              <td id="playerHeight"></td>
+            </tr>
+            <tr>
+              <th>몸무게</th>
+              <td id="playerWeight"></td>
+            </tr>
+            <tr>
+              <th>수상 내역</th>
+              <td id="playerDesc"></td> <!-- 여기는 기존 desc 사용 -->
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+  // ===== 공통: URL 파라미터 읽기 =====
+  function getQueryParam(key) {
+    return new URLSearchParams(window.location.search).get(key);
+  }
+
+  const catParam  = getQueryParam("cat");   // "NBA" / "EPL" / "E-스포츠"
+  const nameParam = getQueryParam("name");  // 선수 이름
+
+  function findPlayer(category, name) {
+    // playerData가 아예 없을 때만 방어
+    if (typeof playerData === "undefined") {
+      console.error("playerData가 로드되지 않았습니다.");
+      return null;
+    }
+
+    // 1) category 우선 검색
+    if (category && playerData[category]) {
+      const list = playerData[category];
+      const found = list.find(p => p.name === name);
+      if (found) {
+        return { player: found, category };
+      }
+    }
+
+    // 2) 못 찾으면 전체에서 이름으로 검색
+    for (let cat in playerData) {
+      const list = playerData[cat];
+      const found = list.find(p => p.name === name);
+      if (found) {
+        return { player: found, category: cat };
+      }
+    }
+
+    return null;
+  }
+
+  function renderPlayerDetail() {
+    const container = document.querySelector(".product-detail-container");
+    if (!container) return;
+
+    if (!nameParam) {
+      container.innerHTML = '<p class="empty-post">선수 정보가 없습니다.</p>';
+      return;
+    }
+
+    const result = findPlayer(catParam, nameParam);
+    if (!result) {
+      container.innerHTML = '<p class="empty-post">선수를 찾을 수 없습니다.</p>';
+      return;
+    }
+
+    const { player, category } = result;
+
+    const img = player.img || "";
+    const desc = player.desc || "";
+
+    const mainImg  = document.getElementById("playerMainImg");
+    const thumbImg = document.getElementById("playerThumbImg");
+    const nameEl   = document.getElementById("playerName");
+    const catEl    = document.getElementById("playerCategory");
+    const teamEl    = document.getElementById("playerTeam");
+    const rlnameEl    = document.getElementById("playerRlName");
+    const birthEl   = document.getElementById("playerBirth");
+    const nationEl  = document.getElementById("playerNation");
+    const posEl     = document.getElementById("playerPosition");
+    const prizeEl   = document.getElementById("playerPrize");
+    const debutEl   = document.getElementById("playerDebut");
+    const heightEl   = document.getElementById("playerHeight");
+    const weightEl   = document.getElementById("playerWeight");
+    const descEl    = document.getElementById("playerDesc");
+
+    if (rlnameEl)  rlnameEl.textContent  = player.rlname    || "";
+    if (teamEl)   teamEl.textContent   = player.team     || "";
+    if (birthEl)  birthEl.textContent  = player.birth    || "";
+    if (nationEl) nationEl.textContent = player.nation   || "";
+    if (posEl)    posEl.textContent    = player.position || "";
+    if (prizeEl)  prizeEl.textContent  = player.prize    || "";
+    if (debutEl)  debutEl.textContent  = player.debut    || "";
+    if (heightEl) heightEl.textContent = player.height   || "";
+    if (weightEl) weightEl.textContent = player.weight   || "";
+    if (descEl)   descEl.textContent   = player.desc     || "";
+
+    if (mainImg)  mainImg.src  = img;
+    if (thumbImg) thumbImg.src = img;
+
+    if (nameEl)   nameEl.textContent = player.name || "";
+    if (catEl)    catEl.textContent  = category ? `[${category}] 선수` : "";
+    if (descEl)   descEl.textContent = desc;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    renderPlayerDetail();
+  });
+</script>
+</body>
+</html>

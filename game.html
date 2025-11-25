@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ENS 경기</title>
+<link rel="stylesheet" href="style.css">
+<script src="data.js"></script>
+<script src="search.js" defer></script>
+<script src="auth.js" defer></script>
+<script src="cart.js" defer></script>
+<script src="tabs-history.js"></script>
+</head>
+<body>
+
+<!-- ===== 공통 헤더 (header.html 내용 그대로) ===== -->
+<div class="header">
+  <div class="top-row">
+    <a href="index.html" class="logo">ENS</a>
+    <div class="search-box">
+      <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
+    </div>
+    <div class="header-user" id="userDisplay"></div>
+  </div>
+
+  <div class="categories">
+  <button onclick="location.href='index.html'">홈</button>
+  <button onclick="location.href='nba.html'">NBA</button>
+  <button onclick="location.href='epl.html'">EPL</button>
+  <button onclick="location.href='esports.html'">E-스포츠</button>
+  <button onclick="location.href='shop.html'">쇼핑</button>
+  <button onclick="location.href='community.html'">커뮤니티</button>
+  <button onclick="location.href='game.html'">경기</button>
+  </div>
+</div>
+
+<!-- 통합 검색 결과 영역 -->
+<div id="searchResultBox" class="search-result-box"></div>
+
+<!-- ============================
+     경기 콘텐츠
+============================= -->
+<div class="game-container">
+  <!-- 상단 카테고리 (NBA / EPL / E-스포츠) -->
+  <div class="game-type-tabs">
+    <button class="game-type-btn active"
+        data-type="NBA"
+        onclick="changeGameType('NBA', this)">NBA</button>
+    <button class="game-type-btn"
+        data-type="EPL"
+        onclick="changeGameType('EPL', this)">EPL</button>
+    <button class="game-type-btn"
+        data-type="E-스포츠"
+        onclick="changeGameType('E-스포츠', this)">E-스포츠</button>
+  </div>
+
+  <!-- 연도(시즌) -->
+  <div class="game-season-header">
+    <h1 id="seasonTitle" class="game-season-title">경기 일정</h1>
+  </div>
+
+  <!-- 월 탭 -->
+  <div id="monthTabs" class="game-month-tabs"></div>
+
+  <!-- 팀 탭 -->
+  <div id="teamTabs" class="game-team-tabs"></div>
+
+  <!-- 날짜별 리스트 -->
+  <div id="gameSchedule" class="game-schedule"></div>
+</div>
+
+<!-- ============================
+     JS
+============================== -->
+<script>
+  let currentGameType = "NBA";     // NBA / EPL / E-스포츠
+  let currentMonthKey = null;      // "YYYY-MM"
+  let monthKeys = [];              // 사용되는 월 리스트
+  const thisYear = new Date().getFullYear();   // 올해 연도
+  let currentTeam = "ALL";         // 팀 전체 or 팀 이름
+
+  // 날짜 → 요일/텍스트
+  function formatKoreanDate(dateStr) {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+
+    const dows = ["일", "월", "화", "수", "목", "금", "토"];
+    const m = d.getMonth() + 1;
+    const day = d.getDate();
+    const dow = dows[d.getDay()];
+    return `${m}월 ${day}일 (${dow})`;
+  }
+
+  // date → "YYYY-MM"
+  function getMonthKey(dateStr) {
+    if (!dateStr || dateStr.length < 7) return "";
+    return dateStr.slice(0, 7);
+  }
+
+  // 시즌(연도) 제목 설정
+  // 시즌(연도) 제목 설정 - 항상 올해
+function setSeasonTitle() {
+  const titleEl = document.getElementById("seasonTitle");
+  titleEl.textContent = `${thisYear} 시즌`;
+}
+
+  // 월 탭 렌더링
+  function renderMonthTabs() {
+    const tabBox = document.getElementById("monthTabs");
+    if (!tabBox) return;
+
+    tabBox.innerHTML = monthKeys.map(key => {
+      const year = key.slice(0, 4);
+      const month = Number(key.slice(5));
+      const active = (key === currentMonthKey) ? "active" : "";
+      return `
+        <button class="month-btn ${active}"
+                onclick="changeMonth('${key}')">
+          ${month}월
+        </button>
+      `;
+    }).join("");
+  }
+
+  function changeMonth(key, push = true) {
+    currentMonthKey = key;
+    renderMonthTabs();
+    buildTeamTabs();
+    renderSchedule();
+
+    if (window.updateTabHistory && push) {
+    updateTabHistory("gmonth", key, true);
+  }
+  }
+
+  function changeGameType(type, btn, push = true) {
+  currentGameType = type;
+
+  // 버튼 active 처리
+  document.querySelectorAll(".game-type-btn").forEach(b => {
+    const t = b.dataset.type;
+    b.classList.toggle("active", t === type);
+  });
+  if (btn) {
+    btn.classList.add("active");
+  }
+
+  // 타입 바뀌면 팀 탭 + 스케줄 다시
+  buildTeamTabs();
+  renderSchedule();
+
+  // URL / 히스토리 (?gtype=EPL 등)
+  if (window.updateTabHistory && push) {
+    updateTabHistory("gtype", type, true);
+  }
+}
+
+  // 현재 월 + 타입 기준으로 팀 목록 만들고 탭 렌더링
+function buildTeamTabs() {
+  const box = document.getElementById("teamTabs");
+  if (!box) return;
+
+  // 현재 월 + 타입에 포함되는 경기들만 사용
+  let list = gameData.filter(g => getMonthKey(g.date) === currentMonthKey);
+  if (currentGameType !== "ALL") {
+    list = list.filter(g => g.type === currentGameType);
+  }
+
+  const set = new Set();
+  list.forEach(g => {
+    const parts = g.name.split("vs");
+    const home = (parts[0] || "").trim();
+    const away = (parts[1] || "").trim();
+    if (home) set.add(home);
+    if (away) set.add(away);
+  });
+
+  const teams = Array.from(set).sort();
+
+  // 현재 선택된 팀이 없으면 팀 전체로 리셋
+  if (currentTeam !== "ALL" && !set.has(currentTeam)) {
+    currentTeam = "ALL";
+  }
+
+  let html = `
+    <button class="team-btn ${currentTeam === 'ALL' ? 'active' : ''}"
+            onclick="changeTeam('ALL')">
+      팀 전체
+    </button>
+  `;
+
+  html += teams.map(name => `
+    <button class="team-btn ${currentTeam === name ? 'active' : ''}"
+            onclick="changeTeam('${name.replace(/'/g,"\\'")}')">
+      ${name}
+    </button>
+  `).join("");
+
+  box.innerHTML = html;
+}
+
+function changeTeam(teamName, push = true) {
+  currentTeam = teamName;
+  buildTeamTabs();   // active 표시 업데이트
+  renderSchedule();  // 리스트 다시 렌더
+
+  // URL / 히스토리 (?gteam=LA%20Lakers 등)
+  if (window.updateTabHistory && push) {
+    updateTabHistory("gteam", teamName, true);
+  }
+}
+
+  // 메인 스케줄 렌더링 (월 + 타입 기준)
+  function renderSchedule() {
+    const box = document.getElementById("gameSchedule");
+    if (!box) return;
+
+    let list = gameData.slice();
+
+    // 월 필터
+    if (currentMonthKey) {
+      list = list.filter(g => getMonthKey(g.date) === currentMonthKey);
+    }
+
+    // 타입 필터
+    if (currentGameType !== "ALL") {
+      list = list.filter(g => g.type === currentGameType);
+    }
+
+     // 팀 필터 (팀 전체가 아닐 때만)
+    if (currentTeam !== "ALL") {
+      list = list.filter(g => {
+        const parts = g.name.split("vs");
+        const home = (parts[0] || "").trim();
+        const away = (parts[1] || "").trim();
+        return home === currentTeam || away === currentTeam;
+      });
+    }
+
+    if (!list.length) {
+      box.innerHTML = `
+        <div class="schedule-empty">
+          해당 월에 등록된 경기가 없습니다.
+        </div>
+      `;
+      return;
+    }
+
+    // 날짜, 시간 기준 정렬
+    list.sort((a, b) => {
+      const da = a.date || "";
+      const db = b.date || "";
+      if (da !== db) return da.localeCompare(db);
+
+      const ta = a.time || "00:00";
+      const tb = b.time || "00:00";
+      return ta.localeCompare(tb);
+    });
+
+    // 날짜별로 그룹화
+    const groups = {};
+    list.forEach(g => {
+      const key = g.date || "날짜 미정";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(g);
+    });
+
+    const dateKeys = Object.keys(groups).sort();
+
+    box.innerHTML = "";
+
+    dateKeys.forEach(dateKey => {
+      const games = groups[dateKey];
+      const dateTitle =
+        dateKey === "날짜 미정" ? "날짜 미정" : formatKoreanDate(dateKey);
+
+      box.innerHTML += `
+        <section class="game-day-section">
+          <header class="game-day-header">${dateTitle}</header>
+          <div class="game-day-table" id="day-${dateKey}"></div>
+        </section>
+      `;
+
+      const dayBox = document.getElementById(`day-${dateKey}`);
+      games.forEach(g => {
+        const parts = g.name.split("vs");
+        const home = (parts[0] || "").trim();
+        const away = (parts[1] || "").trim();
+        const homeName = home || g.name;
+        const awayName = away || "";
+        const timeText = g.time || "-";
+        const venueText = g.venue || "";
+
+        const safeName = g.name.replace(/'/g, "\\'");
+
+        dayBox.innerHTML += `
+          <div class="schedule-row" onclick="openGame('${safeName}')">
+            <div class="schedule-time">${timeText}</div>
+
+            <div class="schedule-main">
+              <div class="schedule-league">${g.type || ""}</div>
+
+              <div class="schedule-body">
+                <div class="schedule-team home">${homeName}</div>
+                <div class="schedule-center">VS</div>
+                <div class="schedule-team away">${awayName}</div>
+              </div>
+
+              <div class="schedule-meta">
+                ${venueText}
+              </div>
+            </div>
+
+            <div class="schedule-more">기록 &gt;</div>
+          </div>
+        `;
+      });
+    });
+  }
+
+  // 경기 카드 클릭 시 상세 페이지로 이동
+  function openGame(name) {
+  const encoded = encodeURIComponent(name);
+  // 같은 탭에서 열기
+  window.location.href = "game_detail.html?match=" + encoded;
+  }
+
+
+  // 전역에서 사용할 수 있게
+  window.changeGameType = changeGameType;
+  window.changeMonth = changeMonth;
+  window.changeTeam = changeTeam;
+  window.openGame = openGame;
+
+    // 초기화
+  (function initGamePage() {
+  // 올해 1월~12월 전체 생성
+  monthKeys = [];
+  for (let m = 1; m <= 12; m++) {
+    const key = `${thisYear}-${String(m).padStart(2, "0")}`; // 예: 2025-01
+    monthKeys.push(key);
+  }
+
+  // 기본 선택: 이번 달
+  const currentMonth = new Date().getMonth() + 1; // 1~12
+  currentMonthKey = `${thisYear}-${String(currentMonth).padStart(2, "0")}`;
+
+  setSeasonTitle();
+  renderMonthTabs();
+
+  if (window.setupTabHistory) {
+    // 1) 월 히스토리 (gmonth)
+    const defaultMonth = currentMonthKey;
+    setupTabHistory("gmonth", defaultMonth, (key, push) => {
+      changeMonth(key, push);
+    });
+
+    // 2) 경기 타입 히스토리 (gtype: NBA / EPL / E-스포츠)
+    setupTabHistory("gtype", "NBA", (type, push) => {
+      const btn = document.querySelector(`.game-type-btn[data-type="${type}"]`);
+      changeGameType(type, btn || null, push);
+    });
+
+    // 3) 팀 필터 히스토리 (gteam: 팀 이름 or "ALL")
+    setupTabHistory("gteam", "ALL", (team, push) => {
+      const value = team || "ALL";
+      changeTeam(value, push);
+    });
+
+  } else {
+    // tabs-history.js 가 없을 때 기본값만 적용
+    const btn = document.querySelector('.game-type-btn[data-type="NBA"]');
+    changeGameType("NBA", btn || null, false);
+  }
+})();
+
+
+
+</script>
+
+</body>
+</html>
+

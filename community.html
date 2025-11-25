@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>ENS 커뮤니티</title>
+<link rel="stylesheet" href="style.css">
+<script src="data.js"></script>
+<script src="search.js" defer></script>
+<script src="auth.js" defer></script>
+<script src="cart.js" defer></script>
+<script src="tabs-history.js"></script>
+</head>
+<body>
+
+<!-- ===== 공통 헤더 ===== -->
+<div class="header">
+  <div class="top-row">
+    <a href="index.html" class="logo">ENS</a>
+    <div class="search-box">
+      <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
+    </div>
+
+    <div class="header-user" id="userDisplay"></div>
+  </div>
+
+  <div class="categories">
+  <button onclick="location.href='index.html'">홈</button>
+  <button onclick="location.href='nba.html'">NBA</button>
+  <button onclick="location.href='epl.html'">EPL</button>
+  <button onclick="location.href='esports.html'">E-스포츠</button>
+  <button onclick="location.href='shop.html'">쇼핑</button>
+  <button onclick="location.href='community.html'">커뮤니티</button>
+  <button onclick="location.href='game.html'">경기</button>
+  </div>
+</div>
+
+<!-- 검색결과 -->
+<div id="searchResultBox" class="search-result-box"></div>
+
+<!-- ============================
+      커뮤니티 레이아웃
+============================= -->
+<div class="community-container">
+  <div class="community-layout">
+
+    <!-- 왼쪽 : 글쓰기 + 게시판 목록 -->
+    <aside class="community-sidebar">
+      <button class="write-btn" onclick="openWrite()">글쓰기</button>
+
+      <div class="board-list">
+        <div class="board-title">게시판</div>
+        <button class="board-item active" data-board="ALL"
+                onclick="changeBoard('ALL', this)">전체 게시글</button>
+        <button class="board-item" data-board="NBA"
+                onclick="changeBoard('NBA', this)">NBA</button>
+        <button class="board-item" data-board="EPL"
+                onclick="changeBoard('EPL', this)">EPL</button>
+        <button class="board-item" data-board="E-스포츠"
+                onclick="changeBoard('E-스포츠', this)">E-스포츠</button>
+      </div>
+    </aside>
+
+    <!-- 가운데 : 게시판 제목 + 글쓰기 + 글 목록 -->
+    <main class="community-main">
+      <div class="community-header-row">
+        <h1 id="boardTitle">커뮤니티</h1>
+        <div class="community-sort">
+          <button class="sort-btn active" data-sort="latest" onclick="changeSort('latest', this)">최신순</button>
+          <button class="sort-btn" data-sort="views" onclick="changeSort('views', this)">조회수순</button>
+          <button class="sort-btn" data-sort="likes" onclick="changeSort('likes', this)">추천순</button>
+        </div>
+
+      </div>
+
+      <div id="writeBox" class="write-box hidden">
+  <div id="writeBoardLabel" class="write-board-label"></div>
+
+  <input type="text" id="postTitle" placeholder="제목을 입력하세요">
+
+  <!-- 이미지 첨부 -->
+  <div class="write-image-row">
+    <label for="postImage">이미지 첨부 (선택)</label>
+    <input type="file" id="postImage" accept="image/*">
+    <div id="postImagePreview" class="post-image-preview"></div>
+  </div>
+
+  <textarea id="postContent" placeholder="내용을 입력하세요"></textarea>
+  <button onclick="savePost()">등록하기</button>
+</div>
+
+
+      <!-- 게시글 목록 -->
+      <div id="postList" class="community-list"></div>
+      <div id="postDetail" class="post-detail hidden"></div>
+    </main>
+
+    <!-- 오른쪽 : 배너 영역 -->
+    <aside class="community-right">
+      <div class="right-banner">
+        <strong>커뮤니티 인기글</strong>
+        <p style="margin-top:6px; font-size:0.8rem; opacity:.8;">
+          인기글 / 공지, 배너 등을 넣을 수 있는 영역입니다.
+        </p>
+      </div>
+
+      <div class="right-banner">
+        <strong>광고 / 이벤트</strong>
+        <p style="margin-top:6px; font-size:0.8rem; opacity:.8;">
+          ENS 이벤트, 안내 배너 등 원하는 내용을 넣으세요.
+        </p>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+
+<!-- ============================
+      JS
+============================= -->
+<script>
+let currentBoard = "ALL";          // 현재 게시판
+let currentPostId = null;          // 상세 보기 중인 글 ID
+let currentSort = "latest";        // 최신순 / 조회수순 / 추천순
+
+// 이미지 미리보기
+const imgInput = document.getElementById("postImage");
+if (imgInput) {
+  imgInput.addEventListener("change", function () {
+    const file = this.files[0];
+    const preview = document.getElementById("postImagePreview");
+    if (!preview) return;
+
+    if (!file) {
+      preview.innerHTML = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.innerHTML = `<img src="${e.target.result}" alt="미리보기">`;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// HTML 이스케이프
+function escapeHtml(str) {
+  if (!str) return "";
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// 저장된 글 리스트 가져오기 + 기본값 보정
+function getPostList() {
+  let list;
+  try {
+    list = JSON.parse(localStorage.getItem("community_posts") || "[]");
+  } catch (e) {
+    list = [];
+  }
+  if (!Array.isArray(list)) list = [];
+
+  let needsSave = false;
+  const now = Date.now();
+
+  list.forEach((p, idx) => {
+    if (!p.id) {
+      p.id = "p_" + now + "_" + idx;
+      needsSave = true;
+    }
+    if (!Array.isArray(p.comments)) {
+      p.comments = [];
+      needsSave = true;
+    }
+    if (typeof p.views !== "number") {
+      p.views = 0;
+      needsSave = true;
+    }
+    if (typeof p.up !== "number") {
+      p.up = 0;
+      needsSave = true;
+    }
+    if (typeof p.down !== "number") {
+      p.down = 0;
+      needsSave = true;
+    }
+  });
+
+  if (needsSave) {
+    localStorage.setItem("community_posts", JSON.stringify(list));
+  }
+  return list;
+}
+
+// 글 리스트 저장
+function savePostList(list) {
+  localStorage.setItem("community_posts", JSON.stringify(list));
+}
+
+// 글 목록 그리기 (현재 게시판 기준)
+function loadPosts() {
+  const all = getPostList();
+  const box = document.getElementById("postList");
+
+  let filtered = all;
+  if (currentBoard !== "ALL") {
+    filtered = all.filter(p => (p.board || "ALL") === currentBoard);
+  }
+  // === 정렬 적용 ===
+  if (typeof currentSort === "undefined") {
+    currentSort = "latest";
+  }
+
+  if (currentSort === "latest") {
+    // 최신순: createdAt 내림차순
+    filtered = filtered.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  } else if (currentSort === "views") {
+    // 조회수순
+    filtered = filtered.slice().sort((a, b) => (b.views || 0) - (a.views || 0));
+  } else if (currentSort === "likes") {
+    // 추천순 (up - down)
+    const likeScore = (p) => (p.up || 0) - (p.down || 0);
+    filtered = filtered.slice().sort((a, b) => likeScore(b) - likeScore(a));
+  }
+
+  if (!box) return;
+
+  if (filtered.length === 0) {
+    box.innerHTML = `<div class="empty-post">등록된 글이 없습니다.</div>`;
+    return;
+  }
+
+  box.innerHTML = "";
+
+  filtered.forEach((p) => {
+    const board = p.board || "ALL";
+    const boardLabel = board !== "ALL"
+      ? `<span class="post-board-tag">${board}</span>`
+      : "";
+
+    const commentCount = (p.comments || []).length;
+    const views = p.views || 0;
+
+    const safeTitle = escapeHtml(p.title);
+    const titleWithCount = commentCount
+      ? `${safeTitle} <span class="post-comment-count">(${commentCount})</span>`
+      : safeTitle;
+
+    const preview = escapeHtml(p.content || "").split("\n")[0];
+
+    const thumbHtml = p.img
+    ? `<img src="${p.img}" class="post-thumb" alt="썸네일">`
+    : "";
+
+    box.innerHTML += `
+      <div class="post" onclick="openPost('${p.id}')">
+        <div class="post-header-row">
+          <h3>${titleWithCount}</h3>
+          ${boardLabel}
+        </div>
+        ${thumbHtml}
+        <p>${preview}</p>
+        <div class="post-meta-row">
+          <span class="post-meta">조회 ${views}</span>
+        </div>
+      </div>
+    `;
+
+  });
+}
+// 정렬 탭 변경 + 히스토리
+function changeSort(sort, btn, push = true) {
+  currentSort = sort;
+
+  // 버튼 active
+  document.querySelectorAll(".sort-btn").forEach(b => {
+    const s = b.dataset.sort || "latest";
+    b.classList.toggle("active", b === btn || s === sort);
+  });
+
+  // 리스트 다시 그리기
+  loadPosts();
+
+  // URL / 히스토리 (?csort=views 등)
+  if (window.updateTabHistory && push) {
+    updateTabHistory("csort", sort, true);
+  }
+}
+
+// 왼쪽 게시판 클릭 + 히스토리
+function changeBoard(board, el, push = true) {
+  currentBoard = board;
+
+  // 왼쪽 게시판 버튼 active 처리
+  document.querySelectorAll(".board-item").forEach(btn => {
+    const b = btn.dataset.board || "ALL";
+    btn.classList.toggle("active", btn === el || b === board);
+  });
+
+  // 상단 제목 변경
+  const titleEl = document.getElementById("boardTitle");
+  if (titleEl) {
+    titleEl.textContent = (board === "ALL") ? "커뮤니티" : board + " 게시판";
+  }
+
+  // 게시판 바꾸면 항상 '목록 화면'으로
+  currentPostId = null;
+  closeWrite(); // 글쓰기 닫기
+
+  const detail = document.getElementById("postDetail");
+  const listBox = document.getElementById("postList");
+  if (detail) detail.classList.add("hidden");
+  if (listBox) listBox.classList.remove("hidden");
+
+  loadPosts();
+
+  // 브라우저 히스토리 반영
+  if (window.updateTabHistory && push) {
+    // 현재 게시판 상태 저장 (ALL / NBA / FC / E-스포츠 …)
+    updateTabHistory("cboard", board, true);
+    // 같은 히스토리 엔트리 안에서 '현재 글'은 비워서 목록 상태로
+    updateTabHistory("cid", "", false);
+  }
+}
+
+
+// 글쓰기 버튼
+function openWrite(push = true) {
+  const box = document.getElementById("writeBox");
+  const listBox = document.getElementById("postList");
+  const detail = document.getElementById("postDetail");
+
+  if (box) box.classList.remove("hidden");
+  if (listBox) listBox.classList.add("hidden");
+  if (detail) detail.classList.add("hidden");
+
+  const label = document.getElementById("writeBoardLabel");
+  if (!label) return;
+
+  if (currentBoard === "ALL") {
+    label.textContent = "게시판(NBA/EPL/이스포츠)을 왼쪽에서 선택한 후 글을 작성하세요.";
+  } else {
+    label.textContent = currentBoard + " 게시판에 글쓰기";
+  }
+
+  // ✅ 히스토리에 '글쓰기 상태'로 기록 (cid = "NEW")
+  if (window.updateTabHistory && push) {
+    updateTabHistory("cid", "NEW", true);
+  }
+}
+
+
+// 글쓰기 박스 닫기
+function closeWrite() {
+  const box = document.getElementById("writeBox");
+  const listBox = document.getElementById("postList");
+
+  if (box) box.classList.add("hidden");
+  if (listBox) listBox.classList.remove("hidden");
+}
+
+function savePost() {
+  const titleEl   = document.getElementById("postTitle");
+  const contentEl = document.getElementById("postContent");
+  const imgInput  = document.getElementById("postImage");
+
+  const title   = titleEl.value.trim();
+  const content = contentEl.value.trim();
+
+  if (!title || !content) {
+    alert("제목과 내용을 입력하세요.");
+    return;
+  }
+
+  if (currentBoard === "ALL") {
+    alert("왼쪽에서 게시판(NBA/EPL/이스포츠)을 먼저 선택해주세요.");
+    return;
+  }
+
+  const file = imgInput && imgInput.files[0];
+
+  // 실제 저장 로직
+  function doSave(imageData) {
+    const list = getPostList();
+    list.unshift({
+      id: "p_" + Date.now(),
+      title,
+      content,
+      board: currentBoard,
+      createdAt: Date.now(),
+      img: imageData || null,   // ★ 이미지 데이터 저장 (data URL)
+      comments: [],
+      views: 0,
+      up: 0,
+      down: 0
+    });
+    savePostList(list);
+
+    // 폼 초기화
+    titleEl.value = "";
+    contentEl.value = "";
+    if (imgInput) imgInput.value = "";
+    const preview = document.getElementById("postImagePreview");
+    if (preview) preview.innerHTML = "";
+
+    closeWrite();
+    loadPosts();
+
+    if (window.updateTabHistory) {
+      updateTabHistory("cid", "", true);
+    }
+  }
+
+  // 이미지가 있으면 FileReader로 읽고, 없으면 바로 저장
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      doSave(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    doSave(null);
+  }
+}
+
+// 글 목록에서 글 클릭 → 상세 보기
+function openPost(postId, skipView, push = true) {
+  let list = getPostList();
+  const idx = list.findIndex(p => p.id === postId);
+  if (idx === -1) return;
+
+  // 조회수 증가 (댓글/추천으로 재렌더링할 땐 안 올림)
+  if (!skipView) {
+    list[idx].views = (list[idx].views || 0) + 1;
+    savePostList(list);
+    list = getPostList();
+  }
+
+  const post = list[idx];
+  currentPostId = postId;
+
+  const detail = document.getElementById("postDetail");
+  const listBox = document.getElementById("postList");
+  const writeBox = document.getElementById("writeBox");
+
+  if (listBox) listBox.classList.add("hidden");
+  if (writeBox) writeBox.classList.add("hidden");
+  if (!detail) return;
+
+  detail.classList.remove("hidden");
+
+  const boardLabel = post.board && post.board !== "ALL"
+    ? post.board + " 이야기"
+    : "커뮤니티";
+
+  const safeTitle = escapeHtml(post.title);
+  const safeContent = escapeHtml(post.content || "").replace(/\n/g, "<br>");
+
+  let dateText = "";
+  if (post.createdAt) {
+    const d = new Date(post.createdAt);
+    dateText = d.toLocaleString();
+  }
+
+  const views = post.views || 0;
+  const up = post.up || 0;
+  const down = post.down || 0;
+  const commentCount = (post.comments || []).length;
+
+  // 댓글 리스트 HTML
+  let commentsHtml = "";
+  if (post.comments && post.comments.length > 0) {
+    commentsHtml = post.comments.map(c => {
+      const cText = escapeHtml(c.text || "").replace(/\n/g, "<br>");
+      let cDate = "";
+      if (c.createdAt) {
+        const d = new Date(c.createdAt);
+        cDate = d.toLocaleString();
+      }
+      return `
+        <div class="comment-item">
+          <div class="comment-meta">익명 · ${cDate}</div>
+          <div class="comment-text">${cText}</div>
+        </div>
+      `;
+    }).join("");
+  } else {
+    commentsHtml = `<div class="empty-comment">첫 댓글을 남겨보세요.</div>`;
+  }
+
+  detail.innerHTML = `
+    <div class="detail-top-bar">
+      <button class="back-btn" onclick="backToList()">목록</button>
+    </div>
+
+    <article class="detail-card">
+      <div class="detail-board">${boardLabel}</div>
+      <h2 class="detail-title">${safeTitle}</h2>
+      <div class="detail-meta">
+        <span>익명</span>
+        ${dateText ? `<span class="dot">·</span><span>${dateText}</span>` : ""}
+        <span class="dot">·</span><span>조회 ${views}</span>
+      </div>
+      <div class="detail-content">
+        ${post.img ? `<img src="${post.img}" class="detail-image" alt="게시물 이미지">` : ""}
+        ${safeContent}
+      </div>
+    </article>
+
+    <section class="comment-section">
+      <div class="detail-actions">
+        <button class="vote-btn" onclick="votePost('up')">
+          추천 <span class="count" id="voteUpCount">${up}</span>
+        </button>
+        <button class="vote-btn" onclick="votePost('down')">
+          비추천 <span class="count" id="voteDownCount">${down}</span>
+        </button>
+      </div>
+
+      <h3 class="comment-title">댓글 ${commentCount}</h3>
+      <div id="commentList" class="comment-list">
+        ${commentsHtml}
+      </div>
+
+      <div class="comment-write">
+        <textarea id="commentInput" placeholder="댓글을 입력하세요"></textarea>
+        <button onclick="saveComment()">등록</button>
+      </div>
+    </section>
+  `;
+  if (window.updateTabHistory && push) {
+    updateTabHistory("cid", postId, true);
+  }
+}
+
+// 상세 화면 → 목록으로
+function backToList(push = true) {
+  currentPostId = null;
+  const detail = document.getElementById("postDetail");
+  const listBox = document.getElementById("postList");
+
+  if (detail) detail.classList.add("hidden");
+  if (listBox) listBox.classList.remove("hidden");
+
+  closeWrite();
+  loadPosts();
+
+  if (window.updateTabHistory && push) {
+    updateTabHistory("cid", "", true);
+  }
+}
+
+// 댓글 저장
+function saveComment() {
+  const input = document.getElementById("commentInput");
+  if (!input) return;
+
+  const text = input.value.trim();
+  if (!text) {
+    alert("댓글을 입력하세요.");
+    return;
+  }
+
+  const list = getPostList();
+  const idx = list.findIndex(p => p.id === currentPostId);
+  if (idx === -1) return;
+
+  if (!Array.isArray(list[idx].comments)) {
+    list[idx].comments = [];
+  }
+
+  list[idx].comments.push({
+    text,
+    createdAt: Date.now()
+  });
+
+  savePostList(list);
+  input.value = "";
+
+  // 상세/목록 둘 다 갱신 (조회수는 안올라가게 skipView=true)
+  openPost(currentPostId, true, false);
+  loadPosts();
+}
+
+// 추천 / 비추천
+function votePost(type) {
+  if (!currentPostId) return;
+
+  const list = getPostList();
+  const idx = list.findIndex(p => p.id === currentPostId);
+  if (idx === -1) return;
+
+  if (type === "up") {
+    list[idx].up = (list[idx].up || 0) + 1;
+  } else if (type === "down") {
+    list[idx].down = (list[idx].down || 0) + 1;
+  }
+
+  savePostList(list);
+
+  // 상세/목록 다시 그리기 (조회수 증가 없이)
+  openPost(currentPostId, true, false);
+  loadPosts();
+}
+
+// 정렬 탭 변경 + 히스토리 (이 부분은 그대로 두고)
+
+// ===== 히스토리 세팅 (게시판 / 정렬 / 글 상세) =====
+if (window.setupTabHistory) {
+  // 1) 게시판 (ALL / NBA / FC / E-스포츠 ...)
+  setupTabHistory("cboard", "ALL", (board, push) => {
+    const btn = document.querySelector(`.board-item[data-board="${board}"]`);
+    changeBoard(board, btn || null, push);
+  });
+
+  // 2) 정렬 탭 (최신 / 조회수 / 추천)
+  setupTabHistory("csort", "latest", (sort, push) => {
+    const btn = document.querySelector(`.sort-btn[data-sort="${sort}"]`);
+    changeSort(sort, btn || null, push);
+  });
+
+  // 3) 글 상세 / 목록 (cid: 글 아이디 or 빈 문자열)
+  setupTabHistory("cid", "", (postId, push) => {
+    if (postId) {
+      // 글 상세 화면으로 (조회수는 올리지 않고, 히스토리는 이미 이동된 상태)
+      openPost(postId, true, false);
+    } else {
+      // 목록 화면으로
+      backToList(false);
+    }
+  });
+
+} else {
+  // tabs-history.js 를 못 쓸 때: 기본값만 세팅
+  const boardBtn = document.querySelector('.board-item[data-board="ALL"]');
+  changeBoard("ALL", boardBtn || null, false);
+
+  const sortBtn = document.querySelector('.sort-btn[data-sort="latest"]');
+  if (sortBtn) changeSort("latest", sortBtn, false);
+}
+
+</script>
+</body>
+</html>
+
