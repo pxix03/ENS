@@ -1,4 +1,4 @@
-// auth.js
+// auth.js - 이동우
 // ==============================
 //  ▶ 로그인 / 회원가입 / 장바구니 공통 스크립트
 // ==============================
@@ -14,14 +14,18 @@ function getCurrentUser() {
   }
 }
 
+// 현재 로그인된 유저 저장
 function saveCurrentUser(user) {
   localStorage.setItem("ensUser", JSON.stringify(user));
 }
+// 로그인 정보 제거 (로그아웃)
 function clearCurrentUser() {
   localStorage.removeItem("ensUser");
 }
 
-// ----- 계정(아이디/비번) 리스트 -----
+// -----------------------------------
+// 계정 목록(아이디/비번 저장용)
+// -----------------------------------
 function getAccounts() {
   try {
     return JSON.parse(localStorage.getItem("ensAccounts") || "[]");
@@ -33,13 +37,14 @@ function saveAccounts(list) {
   localStorage.setItem("ensAccounts", JSON.stringify(list));
 }
 
-// ------------------------------
-// 로그인 모달 생성 & 표시
-// ------------------------------
+// -----------------------------------
+// 로그인 모달 생성 (없으면 만들고, 있으면 그대로 사용)
+// -----------------------------------
 function ensureLoginModal() {
   let overlay = document.getElementById("loginModalOverlay");
   if (overlay) return;
 
+  // 로그인창 HTML 생성
   overlay = document.createElement("div");
   overlay.id = "loginModalOverlay";
   overlay.innerHTML = `
@@ -56,9 +61,9 @@ function ensureLoginModal() {
       <input id="loginPwInput" class="login-modal-input" type="password" placeholder="비밀번호를 입력하세요.">
 
       <div class="login-modal-buttons">
-        <button type="button" class="login-btn-cancel"  id="loginCancelBtn">취소</button>
         <button type="button" class="login-btn-submit"  id="loginSubmitBtn">로그인</button>
         <button type="button" class="login-btn-signup"  id="signupSubmitBtn">회원가입</button>
+        <button type="button" class="login-btn-cancel"  id="loginCancelBtn">취소</button>
       </div>
     </div>
   `;
@@ -69,10 +74,12 @@ function ensureLoginModal() {
     if (e.target === overlay) hideLoginModal();
   });
 
+  // 버튼 이벤트
   document.getElementById("loginCancelBtn").addEventListener("click", hideLoginModal);
   document.getElementById("loginSubmitBtn").addEventListener("click", handleLoginSubmit);
   document.getElementById("signupSubmitBtn").addEventListener("click", handleSignupSubmit);
 
+  // 엔터키 → 로그인 실행
   ["loginIdInput", "loginPwInput"].forEach((id) => {
     const input = document.getElementById(id);
     input.addEventListener("keydown", (e) => {
@@ -99,7 +106,7 @@ function openLoginDialog(updateHistory = true) {
 
   // 브라우저 뒤로가기로 닫을 수 있도록 상태 기록 (alogin = "OPEN")
   if (updateHistory && window.updateTabHistory) {
-    updateTabHistory("alogin", "OPEN", true); // pushState
+    updateTabHistory("alogin", "OPEN", true);
   }
 }
 
@@ -108,13 +115,15 @@ function hideLoginModal(updateHistory = true) {
   const overlay = document.getElementById("loginModalOverlay");
   if (overlay) overlay.style.display = "none";
 
-  // URL 쿼리에서 alogin 제거 (replaceState: 새 히스토리 칸 안 쌓음)
+  // 로그인 상태를 히스토리에서 제거
   if (updateHistory && window.updateTabHistory) {
     updateTabHistory("alogin", "", false); // replaceState
   }
 }
 
-// ----- 로그인 / 회원가입 동작 -----
+// -----------------------------------
+// 로그인 처리
+// -----------------------------------
 function loginWith(id, pw) {
   const accounts = getAccounts();
   const acc = accounts.find(a => a.id === id);
@@ -127,6 +136,7 @@ function loginWith(id, pw) {
     return false;
   }
 
+  // 로그인 성공
   saveCurrentUser({ id: acc.id });
   hideLoginModal();
   removeShopLoginOverlay();
@@ -134,6 +144,9 @@ function loginWith(id, pw) {
   return true;
 }
 
+// -----------------------------------
+// 회원가입 처리
+// -----------------------------------
 function signupWith(id, pw) {
   if (!id || !pw) {
     alert("아이디와 비밀번호를 모두 입력해 주세요.");
@@ -153,10 +166,11 @@ function signupWith(id, pw) {
     alert("이미 사용 중인 아이디입니다. 다른 아이디를 사용해 주세요.");
     return false;
   }
-
+  // 계정 저장
   accounts.push({ id, pw });
   saveAccounts(accounts);
 
+  // 가입과 동시에 로그인 처리
   saveCurrentUser({ id });
   hideLoginModal();
   removeShopLoginOverlay();
@@ -165,6 +179,9 @@ function signupWith(id, pw) {
   return true;
 }
 
+// -----------------------------------
+// 로그인 버튼 클릭 시 실행
+// -----------------------------------
 function handleLoginSubmit() {
   const idInput = document.getElementById("loginIdInput");
   const pwInput = document.getElementById("loginPwInput");
@@ -180,6 +197,9 @@ function handleLoginSubmit() {
   loginWith(id, pw);
 }
 
+// -----------------------------------
+// 회원가입 버튼 클릭 시 실행
+// -----------------------------------
 function handleSignupSubmit() {
   const idInput = document.getElementById("loginIdInput");
   const pwInput = document.getElementById("loginPwInput");
@@ -192,12 +212,13 @@ function handleSignupSubmit() {
 }
 
 // ------------------------------
-// 쇼핑 페이지 헤더 유저 영역
+// 쇼핑 페이지 헤더 유저 영역 (로그인/로그아웃/장바구니)
 // ------------------------------
 function renderHeaderUser() {
   const box = document.getElementById("userDisplay");
   if (!box) return;
-
+  
+  // 쇼핑 페이지에서만 보이게
   const path = location.pathname.split("/").pop();
   const isShopPage = ["shop.html", "product.html", "cart.html"].includes(path);
 
@@ -209,11 +230,14 @@ function renderHeaderUser() {
   }
 
   const user = getCurrentUser();
+
+  // 로그인 안됨
   if (!user) {
     box.innerHTML = `
       <button class="btn-login" id="loginBtn">로그인</button>
       <button class="btn-cart"  id="cartHeaderBtn">장바구니</button>
     `;
+  // 로그인 됨
   } else {
     const displayName = user.name || user.id || "회원";
     box.innerHTML = `
@@ -223,6 +247,7 @@ function renderHeaderUser() {
     `;
   }
 
+  // 이벤트 연결
   const loginBtn = document.getElementById("loginBtn");
   const logoutBtn = document.getElementById("logoutBtn");
   const cartBtn = document.getElementById("cartHeaderBtn");
@@ -265,15 +290,17 @@ function removeShopLoginOverlay() {
 }
 
 function enforceShopLoginIfNeeded() {
-  // 지금은 비워둔 상태 (필요하면 여기에서 쇼핑 접근시 로그인 오버레이 띄우는 로직 추가 가능)
+  // 지금은 비워둔 상태
 }
 
-// 초기 실행
+// -----------------------------------
+// 페이지 로드시 자동 실행
+// -----------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   renderHeaderUser();
   enforceShopLoginIfNeeded();
 
-  // 로그인 모달 히스토리 연동 (SHOP / PRODUCT / CART 페이지에서 동작)
+  //뒤로가기와 로그인창 연동 (SHOP / PRODUCT / CART 페이지에서 동작)
   if (window.setupTabHistory) {
     setupTabHistory("alogin", "", (value, push) => {
       if (value === "OPEN") {
