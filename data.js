@@ -537,7 +537,7 @@ const playerData = {
       name: "구마유시 (Gumayusi)",
       img: "https://i.namu.wiki/i/iRmxcoQlMq1iWwnPTS9F7XSW-JojuqIxDD32u-c3RqH_VoeTarBmPHeocbFdWo5iOFLhqJbOZ288hLIJc143D6_waDDAh-wsJO9Cl1SdDidFhr2j9hJBa0xdOmVtQi5fwxS1exUhrV94umDIS8_DNA.webp",
       rlname:"이민형",
-      team: "T1(이적 예정)",
+      team: "HLE",
       birth: "2002년 2월 6일 (23세)",
       nation: "대한민국",
       position: "바텀",
@@ -584,22 +584,125 @@ const playerData = {
 /* ===== 쇼핑 데이터 ===== */
 const shopData = [
   {
-    name: "윌슨 NBA 농구공",
-    price: "₩95,000",
-    img: "https://kr.wilson.com/cdn/shop/products/P_WTB7100XB_view_1.png",
-    desc: "프리미엄 농구공"
+    name: "르브론 제임스 농구유니폼",
+    price: "₩99,000",
+    img: "https://shop-phinf.pstatic.net/20211029_144/1635496152492jMbmo_JPEG/36631986277790391_1600880605.jpeg?type=o1000",
+    desc: "NBA 르브론 제임스 LA 레이커스 유니폼"
   },
   {
-    name: "농구 유니폼",
-    price: "₩125,000",
-    img: "https://fanatics.frgimages.com/golden-state-warriors/mens-fanatics-stephen-curry-tan-golden-state-warriors-2025/26-city-edition-fast-break-jersey_ss5_p-203056688+pv-2+u-dmvzbpl78tkimnv8g1wp+v-9qerwfasvelhkfcockmv.jpg?_hv=2&w=1018",
-    desc: "NBA 유니폼"
+    name: "케빈 듀란트 농구유니폼",
+    price: "₩129,000",
+    img: "https://shop-phinf.pstatic.net/20241123_141/1732357993897wK59V_JPEG/15587847707605606_1851328078.jpeg?type=o1000",
+    desc: "NBA 케빈 듀란트 피닉스 선즈 유니폼"
+  },
+  {
+    name: "스테판 커리 농구유니폼",
+    price: "₩129,000",
+    img: "https://shop-phinf.pstatic.net/20251110_157/17627685168166vRDE_JPEG/88346823624335594_2065745071.jpeg?type=o1000",
+    desc: "NBA 스테판 커리 골든 스테이트 워리어즈 유니폼"
+  },
+  {
+    name: "제임스 하든 농구유니폼",
+    price: "₩159,000",
+    img: "https://shop-phinf.pstatic.net/20251002_72/1759386770209yIPCJ_JPEG/35159607167832405_1807082899.jpg?type=o1000",
+    desc: "NBA 제임스 하든 로스엔젤레스 클리퍼스 유니폼"
+  },
+  {
+    name: "마이클 조던 농구유니폼",
+    price: "₩429,000",
+    img: "https://shop-phinf.pstatic.net/20231017_300/1697550530356FWvGt_JPEG/44698029151787905_70552296.jpeg?type=o1000",
+    desc: "NBA 전설 마이클 조던 시카고 불스 유니폼"
+  },
+  {
+    name: "르브론 제임스 농구피규어",
+    price: "₩65,000",
+    img: "https://shop-phinf.pstatic.net/20250327_107/1743077766811X2mEz_JPEG/40816154709022769_1921312186.jpg?type=o1000",
+    desc: "NBA 르브론 제임스 LA 레이커스 피규어"
+  },
+  {
+    name: "NBA 농구공",
+    price: "₩95,000",
+    img: "https://kr.wilson.com/cdn/shop/products/P_WTB7100XB_view_1.png",
+    desc: "프리미엄 NBA 농구공"
   },
   {
     name: "조던 농구화",
     price: "₩149,000",
     img: "https://static.nike.com/a/images/t_web_pdp_535_v2/f_auto,u_126ab356-44d8-4a06-89b4-fcdcc8df0245,c_scale,fl_relative,w_1.0,h_1.0,fl_layer_apply/1ba0e4e5-7b69-42e5-a2fa-6b9136db9edb/JORDAN+TATUM+4+PF.png",
-    desc: "NBA 농구화"
+    desc: "NBA 전설 마이클 조던 농구화"
+  },
+  {
+    name: "모하메드 살라 축구유니폼",
+    price: "₩179,000",
+    img: "https://shop-phinf.pstatic.net/20250813_183/1755038827361Sgl06_JPEG/225323512820944_1921952759.JPG?type=o1000",
+    desc: "EPL 공식 리버풀 모하메드 살라 유니폼"
+  },
+  {
+    name: "엘링 홀란드 축구유니폼",
+    price: "₩189,000",
+    img: "https://shop-phinf.pstatic.net/20250611_128/1749621271875QIoXJ_JPEG/83754133003381111_1549553915.jpg?type=o1000",
+    desc: "EPL 공식 맨체스터 시티 엘링 홀란드 유니폼"
+  },
+  {
+    name: "콜 파머 축구유니폼",
+    price: "₩170,000",
+    img: "https://shop-phinf.pstatic.net/20250912_212/1757656902457iB0rz_JPEG/19546723165546034_1561443618.jpg?type=o1000",
+    desc: "EPL 공식 첼시 콜 파머 유니폼"
+  },
+  {
+    name: "히샬리송 축구유니폼",
+    price: "₩195,000",
+    img: "https://shop-phinf.pstatic.net/20250604_263/17490308983111MYR7_PNG/9594811371111176_194705652.png?type=o1000",
+    desc: "EPL 공식 토트넘 히샬리송 유니폼"
+  },
+  {
+    name: "빅토르 요케레스 축구유니폼",
+    price: "₩199,000",
+    img: "https://shop-phinf.pstatic.net/20250919_11/1758236154789e0Hnv_PNG/90971032740654985_1597801858.png?type=o1000",
+    desc: "EPL 공식 아스날 빅토르 요케레스 유니폼"
+  },
+  {
+    name: "EPL 축구공",
+    price: "₩159,000",
+    img: "https://shop-phinf.pstatic.net/20250609_47/1749401661906LCvIx_JPEG/83534514461513852_811843861.jpg?type=o1000",
+    desc: "프리미어리그 공식 축구공"
+  },
+  {
+    name: "축구화",
+    price: "₩189,000",
+    img: "https://static.nike.com/a/images/t_web_pw_592_v2/f_auto/7d578cdb-ac43-4380-8370-e50f5314ea16/ZM+SUPERFLY+10+ELITE+KM+FG.png",
+    desc: "경량 프로 축구화"
+  },
+  {
+    name: "맨시티 응원 축구머플러",
+    price: "₩35,000",
+    img: "https://shop-phinf.pstatic.net/20241031_70/1730345282984AdgH4_JPEG/11855316838705495_1489036197.jpg?type=o1000",
+    desc: "맨시티 응원 머플러"
+  },
+  
+  {
+    name: "T1 게이밍유니폼",
+    price: "₩95,000",
+    img: "https://cafe24img.poxo.com/t1shopgg/web/product/big/202501/d65e32fe54a521a64d2d955156762927.jpg",
+    desc: "T1 공식 유니폼"
+  },
+  {
+    name: "Gen.G 게이밍유니폼",
+    price: "₩98,000",
+    img: "https://en.gengshop.com/web/product/big/202501/59dd13c52683c7b2990b043996ced569.jpg",
+    desc: "Gen.G 공식 유니폼"
+  },
+  {
+    name: "KT Rolster 게이밍유니폼",
+    price: "₩109,000",
+    img: "https://fs.arumnet.com/image/N3810KTSPO//item/38100000056562/4.jpg",
+    desc: "KT Rolster 공식 유니폼"
+  },
+  {
+    name: "HLE 게이밍유니폼",
+    price: "₩109,000",
+    img: "https://ecimg.cafe24img.com/pg666b47713532098/wbplay/web/product/big/20250908/985a9b3c9c6c48b747919ec251a3314f.jpg",
+    desc: "한화생명E스포츠 공식 유니폼"
   },
   {
     name: "게이밍 헤드셋",
@@ -618,24 +721,6 @@ const shopData = [
     price: "₩174,000",
     img: "https://resource.logitechg.com/w_692,c_lpad,ar_4:3,q_auto,f_auto,dpr_1.0/d_transparent.gif/content/dam/gaming/en/products/pro-wireless-gaming-mouse/pro-wireless-carbon-gallery-1.png?v=1",
     desc: "프로 사용 게이밍 마우스"
-  },
-  {
-    name: "축구공",
-    price: "₩159,000",
-    img: "https://shopping-phinf.pstatic.net/main_9003756/90037566155.jpg?type=f300",
-    desc: "EPL 공식 축구공"
-  },
-  {
-    name: "축구화",
-    price: "₩189,000",
-    img: "https://static.nike.com/a/images/t_web_pw_592_v2/f_auto/7d578cdb-ac43-4380-8370-e50f5314ea16/ZM+SUPERFLY+10+ELITE+KM+FG.png",
-    desc: "경량 프로 축구화"
-  },
-  {
-    name: "축구 유니폼",
-    price: "₩75,000",
-    img: "https://sitem.ssgcdn.com/28/67/38/item/1000704386728_i1_370.jpg",
-    desc: "EPL 공식 유니폼"
   },
   {
     name: "손목 보호대",
