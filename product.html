@@ -1,13 +1,25 @@
-<!DOCTYPE html>
-<html lang="ko">
+<!DOCTYPE html><!--이동우 --><!-- HTML5 문서 선언 -->
+<html lang="ko"> <!-- 문서 언어 한국어 설정 -->
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8"> <!-- 문서 문자 인코딩 UTF-8 -->
   <title>상품 상세 - ENS 쇼핑</title>
+
+  <!-- 공통 스타일 시트 -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- 전체 데이터(상품/게시글 등)를 담은 JS. 전역 변수 shopData 를 제공한다고 가정 -->
   <script src="data.js"></script>
+
+  <!-- 상단 통합 검색(전역 검색 input 사용) 관련 스크립트 -->
   <script src="search.js" defer></script>
+
+  <!-- 로그인/로그아웃/유저 표시 등 인증 관련 스크립트 -->
   <script src="auth.js" defer></script>
+
+  <!-- 장바구니/구매 관련 스크립트 (btnCart, btnBuy 등이 이 파일에서 처리될 가능성 높음) -->
   <script src="cart.js" defer></script>
+
+  <!-- 탭 상태를 URL 히스토리와 동기화하는 스크립트 (뒤로가기 시 탭 상태 유지) -->
   <script src="tabs-history.js"></script>
 
 </head>
@@ -15,50 +27,62 @@
 <!-- 공통 헤더 -->
 <div class="header">
   <div class="top-row">
+    <!-- 로고: 메인(index.html)으로 이동 -->
     <a href="index.html" class="logo">ENS</a>
 
+    <!-- 전역 검색창: search.js에서 이 input을 활용하여 검색 -->
     <div class="search-box">
       <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
     </div>
 
+    <!-- 로그인/회원 정보 표시 영역: auth.js에서 내용을 채움 -->
     <div class="header-user" id="userDisplay"></div>
   </div>
 
+  <!-- 상단 카테고리 네비게이션 버튼들 -->
   <div class="categories">
-  <button onclick="location.href='index.html'">홈</button>
-  <button onclick="location.href='nba.html'">NBA</button>
-  <button onclick="location.href='epl.html'">EPL</button>
-  <button onclick="location.href='esports.html'">E-스포츠</button>
-  <button onclick="location.href='shop.html'">쇼핑</button>
-  <button onclick="location.href='community.html'">커뮤니티</button>
-  <button onclick="location.href='game.html'">경기</button>
+    <button onclick="location.href='index.html'">홈</button>
+    <button onclick="location.href='nba.html'">NBA</button>
+    <button onclick="location.href='epl.html'">EPL</button>
+    <button onclick="location.href='esports.html'">E-스포츠</button>
+    <button onclick="location.href='shop.html'">쇼핑</button>
+    <button onclick="location.href='community.html'">커뮤니티</button>
+    <button onclick="location.href='game.html'">경기</button>
   </div>
 </div>
 
-<!-- 통합 검색 결과 영역 -->
+<!-- 통합 검색 결과 영역: search.js에서 검색 시 이 박스에 결과를 그려넣는 용도 -->
 <div id="searchResultBox" class="search-result-box"></div>
 
-<!-- ====== 상품 상세 ====== -->
+<!-- ====== 상품 상세 전체 컨테이너 ====== -->
 <div class="product-detail-container">
   <div class="product-detail-layout">
 
-    <!-- 왼쪽: 갤러리(썸네일 + 메인이미지) -->
+    <!-- 왼쪽: 상품 이미지 갤러리(썸네일 + 메인이미지) -->
     <div class="product-gallery">
+      <!-- 여러 장의 썸네일이 들어갈 컨테이너 (JS로 채움) -->
       <div class="product-thumbs" id="thumbList">
         <!-- JS에서 썸네일 버튼 생성 -->
       </div>
 
+      <!-- 선택된(또는 기본) 메인 이미지 표시 영역 -->
       <div class="product-main-image">
         <img id="detailImg" src="" alt="">
       </div>
     </div>
 
-    <!-- 오른쪽: 정보 / 버튼 -->
+    <!-- 오른쪽: 상품 이름/가격/설명/버튼 등의 정보 -->
     <div class="product-detail-info">
+      <!-- 상품명 -->
       <h1 id="detailName"></h1>
+
+      <!-- 상품 가격 -->
       <div id="detailPrice" class="product-detail-price"></div>
+
+      <!-- 간단한 상품 설명 -->
       <p id="detailDesc" class="product-detail-desc"></p>
 
+      <!-- 장바구니/바로구매 버튼들 -->
       <div class="product-detail-actions">
         <button id="btnCart" class="btn-cart">장바구니 담기</button>
         <button id="btnBuy" class="btn-buy">바로구매</button>
@@ -66,49 +90,63 @@
     </div>
   </div>
 
-  <!-- 아래: 탭(정보 / 구매후기) -->
+  <!-- 아래: 상세 탭(정보 / 구매후기) -->
   <div class="product-detail-tabs">
+    <!-- 탭 버튼 영역 -->
     <div class="product-tabs">
+      <!-- 기본 탭: 정보 -->
       <button class="product-tab-btn active" data-tab="info">정보</button>
+      <!-- 서브 탭: 구매후기 -->
       <button class="product-tab-btn" data-tab="review">구매후기</button>
     </div>
 
+    <!-- 탭 컨텐츠(패널) 영역 -->
     <div class="product-tab-panels">
+      <!-- 정보 탭 컨텐츠: JS에서 상품 데이터로 채워 넣음 -->
       <div id="tab-info" class="product-tab-panel active">
         <!-- JS에서 상품 정보 채워 넣음 -->
       </div>
 
-    <div id="tab-review" class="product-tab-panel">
+      <!-- 구매후기 탭 컨텐츠 -->
+      <div id="tab-review" class="product-tab-panel">
         <section class="comment-section">
-        <h3 class="comment-title">
-        구매후기
-        <span id="reviewCount" class="comment-count"></span>
-        </h3>
+          <h3 class="comment-title">
+            구매후기
+            <!-- 후기 개수 표시 (예: (3)) -->
+            <span id="reviewCount" class="comment-count"></span>
+          </h3>
 
-        <!-- 후기 리스트 -->
-        <div id="reviewList" class="comment-list"></div>
+          <!-- 후기 리스트가 들어가는 영역 -->
+          <div id="reviewList" class="comment-list"></div>
 
-        <!-- 후기 작성 -->
-        <div class="comment-write">
-        <textarea id="reviewInput" placeholder="구매 후기를 남겨보세요"></textarea>
-        <button onclick="saveReview()">등록</button>
-        </div>
+          <!-- 후기 작성 영역 -->
+          <div class="comment-write">
+            <textarea id="reviewInput" placeholder="구매 후기를 남겨보세요"></textarea>
+            <!-- 버튼 클릭 시 saveReview() 실행 -->
+            <button onclick="saveReview()">등록</button>
+          </div>
         </section>
-        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-  // ===== 공통: URL 파라미터 =====
+  // ===== 공통: URL 파라미터에서 특정 키 값 가져오기 =====
+  // 예: detail.html?name=상품A => getQueryParam("name") => "상품A"
   function getQueryParam(key) {
     return new URLSearchParams(location.search).get(key);
   }
 
+  // 현재 페이지의 URL에서 상품 이름(name)을 가져옴
   const productName = getQueryParam("name");
+
+  // 현재 상세 페이지에서 보여주는 상품 객체를 보관할 변수
   let currentProduct = null;
 
-  // HTML 이스케이프 (XSS 방지용)
+  // ===== HTML 이스케이프 (XSS 방지용) =====
+  // 사용자가 입력한 텍스트(후기 등)를 그대로 innerHTML로 넣으면
+  // <script> 같은 악성 코드가 실행될 수 있으므로, 이스케이프 처리 후 사용
   function escapeHtml(str) {
     if (!str) return "";
     return str.replace(/[&<>"']/g, function (m) {
@@ -122,44 +160,62 @@
     });
   }
 
-  // ===== 구매후기 저장용 공통 =====
+  // ===== 구매후기 저장용 공통 함수들 =====
+  // 모든 상품의 후기를 localStorage에 "product_reviews"라는 키로 관리
+  // 구조 예: { "상품A": [ {text:"...", createdAt: 123456789}, ... ], "상품B": [...] }
   function getReviewStore() {
     try {
+      // localStorage에서 문자열 가져오기. 없으면 "{}"
       const raw = localStorage.getItem("product_reviews") || "{}";
+      // 문자열을 JS 객체로 변환
       const obj = JSON.parse(raw);
+      // 객체 형태가 맞으면 그대로, 아니면 빈 객체 반환
       return (obj && typeof obj === "object") ? obj : {};
     } catch (e) {
+      // JSON 파싱에 실패하거나 오류가 나면 안전하게 빈 객체 반환
       return {};
     }
   }
+
+  // 변경된 후기 객체를 다시 localStorage에 저장
   function saveReviewStore(store) {
     localStorage.setItem("product_reviews", JSON.stringify(store));
   }
 
+  // 현재 상품에 대한 후기 리스트를 화면에 렌더링
   function renderReviews() {
     const listBox = document.getElementById("reviewList");
     const countEl = document.getElementById("reviewCount");
+    // 후기 영역 혹은 productName이 없으면 렌더링 불필요
     if (!listBox || !productName) return;
 
+    // 전체 후기 스토어 가져오기
     const store = getReviewStore();
+    // 현재 상품명에 해당하는 후기 배열을 가져옴 (없으면 빈 배열)
     const list = Array.isArray(store[productName]) ? store[productName] : [];
 
+    // 후기 개수 표시 (0개면 표시하지 않음)
     if (countEl) {
       countEl.textContent = list.length ? ` (${list.length})` : "";
     }
 
+    // 후기가 하나도 없을 때
     if (!list.length) {
       listBox.innerHTML = `<div class="empty-comment">첫 구매후기를 남겨보세요.</div>`;
       return;
     }
 
+    // 후기 리스트가 있을 때 각 후기 객체를 HTML로 변환 후 join
     listBox.innerHTML = list.map(r => {
+      // 후기 텍스트를 XSS 방지용 이스케이프 처리 + 줄바꿈(\n)을 <br>로 교체
       const textHtml = escapeHtml(r.text || "").replace(/\n/g, "<br>");
       let dateTxt = "";
       if (r.createdAt) {
+        // 저장된 타임스탬프를 Date 객체로 바꿔 로컬 시간 문자열로 표시
         const d = new Date(r.createdAt);
         dateTxt = d.toLocaleString();
       }
+      // 각 후기 아이템의 HTML 구조
       return `
         <div class="comment-item">
           <div class="comment-meta">익명 · ${dateTxt}</div>
@@ -169,26 +225,33 @@
     }).join("");
   }
 
+  // 후기 작성 textarea 내용을 읽어와 저장하는 함수
   function saveReview() {
     const input = document.getElementById("reviewInput");
+    // textarea나 productName이 없으면 처리 중단
     if (!input || !productName) return;
 
+    // 앞뒤 공백 제거
     const text = input.value.trim();
     if (!text) {
       alert("구매 후기를 입력하세요.");
       return;
     }
 
+    // 기존 후기 스토어 가져오기
     const store = getReviewStore();
+    // 현재 상품명에 해당하는 배열이 없으면 새 배열 생성
     if (!Array.isArray(store[productName])) {
       store[productName] = [];
     }
 
+    // 새 후기 객체 추가 (작성 시간은 현재 시각의 타임스탬프)
     store[productName].push({
       text,
       createdAt: Date.now()
     });
 
+    // 저장 후 textarea 초기화, 다시 렌더링
     saveReviewStore(store);
     input.value = "";
     renderReviews();
@@ -196,21 +259,26 @@
 
   // ===== 상품 정보 렌더링 =====
   function renderProduct() {
+    // 전체 상세 영역 컨테이너
     const container = document.querySelector(".product-detail-container");
 
+    // URL에 name 파라미터가 없다면 상품 정보가 없는 상태
     if (!productName) {
       container.innerHTML = '<p class="empty-post">상품 정보가 없습니다.</p>';
       return;
     }
 
+    // data.js 에서 제공하는 shopData 배열에서 name이 일치하는 상품 찾기
     const item = shopData.find(p => p.name === productName);
     currentProduct = item;
 
+    // 해당 이름의 상품을 찾지 못했을 때
     if (!item) {
       container.innerHTML = '<p class="empty-post">상품을 찾을 수 없습니다.</p>';
       return;
     }
 
+    // 상세 영역에서 사용할 DOM 요소들 가져오기
     const imgEl   = document.getElementById("detailImg");
     const nameEl  = document.getElementById("detailName");
     const priceEl = document.getElementById("detailPrice");
@@ -218,12 +286,15 @@
     const thumbList = document.getElementById("thumbList");
     const tabInfo = document.getElementById("tab-info");
 
+    // 브라우저 탭(문서) 제목을 상품명으로 변경
     document.title = item.name + " - ENS 쇼핑";
 
+    // 기본 정보 채우기
     nameEl.textContent = item.name;
     priceEl.textContent = item.price;
     descEl.textContent = item.desc || "";
 
+    // "정보" 탭 내용 구성 (상품 상세 + 고정 안내문)
     tabInfo.innerHTML = `
       <h2 class="tab-info-title">상품 정보</h2>
       <p>${item.desc || "상품 정보가 준비 중입니다."}</p>
@@ -234,79 +305,101 @@
       </ul>
     `;
 
+    // 상품에 여러 장의 이미지가 있을 경우 item.images 사용,
+    // 없으면 기본 이미지(item.img)를 3개 정도 반복해서 썸네일로 사용
     const images = (item.images && item.images.length)
       ? item.images
       : [item.img, item.img, item.img];
 
+    // 메인 이미지 기본값을 첫 번째 이미지로 설정
     imgEl.src = images[0];
     imgEl.alt = item.name;
 
+    // 썸네일 버튼들을 생성하여 thumbList에 넣기
     thumbList.innerHTML = images.map((src, idx) => `
       <button class="product-thumb ${idx === 0 ? "active" : ""}" data-src="${src}">
         <img src="${src}" alt="${item.name} 썸네일 ${idx + 1}">
       </button>
     `).join("");
 
+    // 썸네일 영역에 이벤트 위임: 썸네일을 클릭하면 메인 이미지 변경
     thumbList.addEventListener("click", (e) => {
+      // 클릭된 요소에서 가장 가까운 .product-thumb 버튼 찾기
       const btn = e.target.closest(".product-thumb");
       if (!btn) return;
 
+      // data-src 속성에 저장해둔 이미지 경로 읽어오기
       const src = btn.dataset.src;
+      // 메인 이미지 변경
       imgEl.src = src;
 
+      // 모든 썸네일에서 active 클래스 제거 후
       document.querySelectorAll(".product-thumb").forEach(b => b.classList.remove("active"));
+      // 클릭한 썸네일에만 active 클래스 추가
       btn.classList.add("active");
     });
 
+    // 상품 정보 렌더링 후 후기 목록도 함께 렌더링
     renderReviews();
   }
-  // 실제 렌더링 실행
-renderProduct();
 
-let currentProductTab = "info";
+  // 페이지 로딩 시 실제로 상품 렌더링 함수 호출
+  renderProduct();
 
-// 탭 전환 + 히스토리
-function changeProductTab(target, push = true) {
-  currentProductTab = target;
+  // 현재 선택된 상품 상세 탭 상태 (기본값 "info")
+  let currentProductTab = "info";
 
-  // 버튼 active
-  document.querySelectorAll(".product-tab-btn").forEach(b => {
-    const t = b.dataset.tab;
-    b.classList.toggle("active", t === target);
-  });
+  // ===== 탭 전환 + 히스토리 반영 함수 =====
+  // target: "info" 또는 "review"
+  // push: true면 history.pushState 사용, false면 사용하지 않음(초기 설정용)
+  function changeProductTab(target, push = true) {
+    currentProductTab = target;
 
-  // 패널 active
-  document.querySelectorAll(".product-tab-panel").forEach(panel => {
-    panel.classList.toggle("active", panel.id === "tab-" + target);
-  });
+    // 탭 버튼에 active 클래스 토글
+    document.querySelectorAll(".product-tab-btn").forEach(b => {
+      const t = b.dataset.tab;
+      b.classList.toggle("active", t === target);
+    });
 
-  // URL / 히스토리 (?ptab=review 등)
-  if (window.updateTabHistory && push) {
-    updateTabHistory("ptab", target, true);
+    // 탭 패널(컨텐츠)에 active 클래스 토글
+    document.querySelectorAll(".product-tab-panel").forEach(panel => {
+      panel.classList.toggle("active", panel.id === "tab-" + target);
+    });
+
+    // URL 쿼리(?ptab=review 등)에 탭 상태 반영 + history.pushState 처리
+    // tabs-history.js 에서 제공하는 updateTabHistory()가 있을 때만 수행
+    if (window.updateTabHistory && push) {
+      // "ptab"이라는 파라미터 이름으로 target 값(info/review)을 저장
+      updateTabHistory("ptab", target, true);
+    }
   }
-}
 
-// 버튼 클릭 이벤트
-document.querySelectorAll(".product-tab-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const target = btn.dataset.tab;  // "info" or "review"
-    changeProductTab(target, true);
+  // 탭 버튼 클릭 이벤트 등록
+  document.querySelectorAll(".product-tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.tab;  // "info" or "review"
+      // 클릭 시 해당 탭으로 전환 + 히스토리 반영
+      changeProductTab(target, true);
+    });
   });
-});
 
-// 초기 탭 + 뒤로가기 연동
-if (window.setupTabHistory) {
-  setupTabHistory("ptab", "info", (tab, push) => {
-    changeProductTab(tab, push);
-  });
-} else {
-  changeProductTab("info", false);
-}
-
+  // ===== 초기 탭 상태 설정 + 뒤로가기 연동 =====
+  // tabs-history.js 에서 setupTabHistory 함수가 제공되는 경우:
+  // URL의 ?ptab= 값에 따라 탭 상태를 복원하고, popstate(뒤로가기) 시에도 콜백 호출
+  if (window.setupTabHistory) {
+    // 첫 번째 인자: URL 파라미터 이름("ptab")
+    // 두 번째 인자: 기본값("info")
+    // 세 번째 인자: URL/히스토리 변경 시 실행할 콜백
+    setupTabHistory("ptab", "info", (tab, push) => {
+      // tab: "info"/"review" 중 하나, push: true/false
+      changeProductTab(tab, push);
+    });
+  } else {
+    // tabs-history.js가 없거나 setupTabHistory를 제공하지 않으면
+    // 단순히 "info" 탭을 기본 활성화
+    changeProductTab("info", false);
+  }
 
 </script>
-
-
 </body>
 </html>
-
