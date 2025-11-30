@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!--임제강-->
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -59,7 +59,7 @@
                 onclick="changeBoard('E-스포츠', this)">E-스포츠</button>
       </div>
     </aside>
-
+    
     <!-- 가운데 : 게시판 제목 + 글쓰기 + 글 목록 -->
     <main class="community-main">
       <div class="community-header-row">
@@ -144,57 +144,59 @@ if (imgInput) {
   });
 }
 
-// HTML 이스케이프
+// html태그 실행 방지용 HTML 이스케이프 함수
 function escapeHtml(str) {
-  if (!str) return "";
+  if (!str) return ""; // 인수 str이 제대로 정의되지 않았을 경우 빈 문자열 반환
   return str
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/'/g, "&#039;"); // html 특수문자들 변환
 }
 
 // 저장된 글 리스트 가져오기 + 기본값 보정
 function getPostList() {
-  let list;
+  // list가 배열로 처리되도록 해주는 코드
+  let list; // 게시글 리스트를 담을 변수 선언
   try {
-    list = JSON.parse(localStorage.getItem("community_posts") || "[]");
-  } catch (e) {
-    list = [];
+    // localStorage에서 "community_posts"값을 가져와 유효한 JSON 형식 문자열을 배열로 변환
+    list = JSON.parse(localStorage.getItem("community_posts") || "[]"); // 값이 없을 경우 "[]"를 사용(기본값 부여)
+  } catch (e) { // JSON.parse에서 에러가 발생했을때 실행하는 코드
+    list = []; // 리스트에 빈 배열 초기화
   }
-  if (!Array.isArray(list)) list = [];
+  if (!Array.isArray(list)) list = []; // 리스트가 배열로 변환 되었는지 검사, 안됐을 경우 빈 배열 초기화
+  
+  let needsSave = false; // 데이터 수정 여부 판단해주는 변수
+  const now = Date.now(); // 상수 now에 현시간 저장
 
-  let needsSave = false;
-  const now = Date.now();
-
-  list.forEach((p, idx) => {
-    if (!p.id) {
-      p.id = "p_" + now + "_" + idx;
-      needsSave = true;
+  list.forEach((p, idx) => { // 저장 글 리스트 검사(각 게시글, 게시글 인덱스)
+    if (!p.id)  { // 게시글에 아이디가 없을 경우
+      p.id = "p_" + now + "_" + idx; // p에 고유한 아이디 부여
+      needsSave = true; // 수정여부 판단 변수 값 변환
     }
-    if (!Array.isArray(p.comments)) {
-      p.comments = [];
-      needsSave = true;
+    if (!Array.isArray(p.comments)) { // 게시글에 댓글이 배열이 아닐 경우
+      p.comments = []; // 빈 배열로 초기화
+      needsSave = true; // 수정여부 판단 변수 값 변환
     }
-    if (typeof p.views !== "number") {
-      p.views = 0;
-      needsSave = true;
+    if (typeof p.views !== "number") { // 조회수 데이터형이 숫자가 아닐 경우
+      p.views = 0; // 0으로 초기화
+      needsSave = true; // 수정여부 판단 변수 값 변환
     }
-    if (typeof p.up !== "number") {
-      p.up = 0;
-      needsSave = true;
+    if (typeof p.up !== "number") { // 추천 데이터형이 숫자가 아닐 경우
+      p.up = 0; // 0으로 초기화
+      needsSave = true; // 수정여부 판단 변수 값 변환
     }
-    if (typeof p.down !== "number") {
-      p.down = 0;
-      needsSave = true;
+    if (typeof p.down !== "number") { // 비추천 데이터형이 숫자가 아닐 경우
+      p.down = 0; // 0으로 초기화
+      needsSave = true; // 수정여부 판단 변수 값 변환
     }
   });
 
-  if (needsSave) {
-    localStorage.setItem("community_posts", JSON.stringify(list));
+  if (needsSave) { // 데이터를 수정했을시
+    localStorage.setItem("community_posts", JSON.stringify(list)); // 수정된 배열을 문자열로 변환하여 localStorage의 "community_posts"에 저장
   }
-  return list;
+  return list; // 게시글 리스트 반환
 }
 
 // 글 리스트 저장
@@ -204,21 +206,21 @@ function savePostList(list) {
 
 // 글 목록 그리기 (현재 게시판 기준)
 function loadPosts() {
-  const all = getPostList();
-  const box = document.getElementById("postList");
+  const all = getPostList(); // localStorage에 저장된 전체 게시글 리스트를 all에 초기화
+  const box = document.getElementById("postList"); // id가 "postList"인 요소 반환
 
-  let filtered = all;
-  if (currentBoard !== "ALL") {
-    filtered = all.filter(p => (p.board || "ALL") === currentBoard);
+  let filtered = all; // 필터 변수에 전체 게시글 리스트(all)로 초기화
+  if (currentBoard !== "ALL") { // 현재 게시글이 "ALL" 상태가 아닐 경우(*필터링을 해야하는 상황)
+    filtered = all.filter(p => (p.board || "ALL") === currentBoard); // p.board 값에 맞는 배열 반환, 혹은 "ALL" 반환
   }
   // === 정렬 적용 ===
-  if (typeof currentSort === "undefined") {
-    currentSort = "latest";
+  if (typeof currentSort === "undefined") { // 현재 정렬 기준이 정의되지 않았을 경우
+    currentSort = "latest"; // 정렬 기준을 최신순으로 설정
   }
 
-  if (currentSort === "latest") {
+  if (currentSort === "latest") { // 정렬 기준이 최신순일 경우
     // 최신순: createdAt 내림차순
-    filtered = filtered.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    filtered = filtered.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)); // b의 작성시간이 a의 작성시간 보다 클 경우, b에 우선순위 부여하는 식으로 정렬
   } else if (currentSort === "views") {
     // 조회수순
     filtered = filtered.slice().sort((a, b) => (b.views || 0) - (a.views || 0));
@@ -228,35 +230,38 @@ function loadPosts() {
     filtered = filtered.slice().sort((a, b) => likeScore(b) - likeScore(a));
   }
 
-  if (!box) return;
+  if (!box) return; // box에 아무런 값이 할당되지 않았을 경우 함수 종료
 
-  if (filtered.length === 0) {
+  if (filtered.length === 0) { // 필터링하였을 때, 게시글이 없을 경우
     box.innerHTML = `<div class="empty-post">등록된 글이 없습니다.</div>`;
     return;
   }
 
-  box.innerHTML = "";
+  box.innerHTML = ""; // 게시글 목록 초기화
 
   filtered.forEach((p) => {
-    const board = p.board || "ALL";
-    const boardLabel = board !== "ALL"
+    const board = p.board || "ALL"; // 게시글 p의 board 이름 가져오기 만약 p.board가 없으면 "ALL"로 기본값 설정
+    const boardLabel = board !== "ALL" // board가 "ALL"이 아니면 HTML 태그로 표시 
       ? `<span class="post-board-tag">${board}</span>`
       : "";
 
-    const commentCount = (p.comments || []).length;
-    const views = p.views || 0;
+    const commentCount = (p.comments || []).length; // 게시글 댓글 수, 없을 경우 빈 배열 길이(0) 반환
+    const views = p.views || 0; // 게시글 조회수, 없을 경우 0 반환
 
-    const safeTitle = escapeHtml(p.title);
-    const titleWithCount = commentCount
+    const safeTitle = escapeHtml(p.title); // 게시글 제목 이스케이프 처리
+    const titleWithCount = commentCount // 댓글 수 제목 뒤에 표시 없을 경우 제목만 표시
       ? `${safeTitle} <span class="post-comment-count">(${commentCount})</span>`
       : safeTitle;
+    
 
+    // 본문 미리보기: 첫 줄만
     const preview = escapeHtml(p.content || "").split("\n")[0];
 
+    // 썸네일 이미지 있으면 HTML 생성
     const thumbHtml = p.img
     ? `<img src="${p.img}" class="post-thumb" alt="썸네일">`
     : "";
-
+    // 게시글 카드 HTML 생성 후 box에 추가
     box.innerHTML += `
       <div class="post" onclick="openPost('${p.id}')">
         <div class="post-header-row">
@@ -275,12 +280,12 @@ function loadPosts() {
 }
 // 정렬 탭 변경 + 히스토리
 function changeSort(sort, btn, push = true) {
-  currentSort = sort;
+  currentSort = sort; // 현재 정렬 기준을 인수로 준 정렬 기준으로 변경
 
   // 버튼 active
-  document.querySelectorAll(".sort-btn").forEach(b => {
-    const s = b.dataset.sort || "latest";
-    b.classList.toggle("active", b === btn || s === sort);
+  document.querySelectorAll(".sort-btn").forEach(b => { // 페이지에 있는 모든 정렬 버튼으로 반복문
+    const s = b.dataset.sort || "latest"; // 상수 s에 버튼에 지정된 정렬 기준 초기화(기본값 최신순)
+    b.classList.toggle("active", b === btn || s === sort); // 정렬 기준과 버튼이 각각 같으면 active
   });
 
   // 리스트 다시 그리기
@@ -293,19 +298,19 @@ function changeSort(sort, btn, push = true) {
 }
 
 // 왼쪽 게시판 클릭 + 히스토리
-function changeBoard(board, el, push = true) {
-  currentBoard = board;
+function changeBoard(board, el, push = true) { 
+  currentBoard = board; 
 
   // 왼쪽 게시판 버튼 active 처리
-  document.querySelectorAll(".board-item").forEach(btn => {
-    const b = btn.dataset.board || "ALL";
-    btn.classList.toggle("active", btn === el || b === board);
+  document.querySelectorAll(".board-item").forEach(btn => { // 왼쪽 게시판에 있는 모든 버튼으로 반복문
+    const b = btn.dataset.board || "ALL"; // 각 버튼 속성 확인(b)
+    btn.classList.toggle("active", btn === el || b === board); // 클릭한 버튼(el)이거나 현재 선택된 게시판과 같으면 active부여
   });
 
   // 상단 제목 변경
   const titleEl = document.getElementById("boardTitle");
   if (titleEl) {
-    titleEl.textContent = (board === "ALL") ? "커뮤니티" : board + " 게시판";
+    titleEl.textContent = (board === "ALL") ? "커뮤니티" : board + " 게시판"; // ALL일 경우 "커뮤니티", 그 외 board + "게시판"
   }
 
   // 게시판 바꾸면 항상 '목록 화면'으로
@@ -314,10 +319,10 @@ function changeBoard(board, el, push = true) {
 
   const detail = document.getElementById("postDetail");
   const listBox = document.getElementById("postList");
-  if (detail) detail.classList.add("hidden");
-  if (listBox) listBox.classList.remove("hidden");
+  if (detail) detail.classList.add("hidden"); // 게시판 변경시 상세 화면 숨김
+  if (listBox) listBox.classList.remove("hidden"); // 글 목록 화면 표시
 
-  loadPosts();
+  loadPosts(); // 게시글 목록 불러오기
 
   // 브라우저 히스토리 반영
   if (window.updateTabHistory && push) {
@@ -331,24 +336,25 @@ function changeBoard(board, el, push = true) {
 
 // 글쓰기 버튼
 function openWrite(push = true) {
-  const box = document.getElementById("writeBox");
-  const listBox = document.getElementById("postList");
-  const detail = document.getElementById("postDetail");
+  const box = document.getElementById("writeBox");  // 글쓰기 박스
+  const listBox = document.getElementById("postList");  // 게시글 리스트
+  const detail = document.getElementById("postDetail");  // 게시글 상세 보기 요소
 
-  if (box) box.classList.remove("hidden");
-  if (listBox) listBox.classList.add("hidden");
-  if (detail) detail.classList.add("hidden");
+  if (box) box.classList.remove("hidden");  // 글쓰기 박스를 화면에 보이도록
+  if (listBox) listBox.classList.add("hidden");  // 게시글 리스트는 숨김
+  if (detail) detail.classList.add("hidden");  // 게시글 상세보기 숨김
 
-  const label = document.getElementById("writeBoardLabel");
-  if (!label) return;
 
-  if (currentBoard === "ALL") {
+  const label = document.getElementById("writeBoardLabel"); // 글쓰기 창 상단에 표시될 게시판 이름
+  if (!label) return; // 에러 방지
+
+  if (currentBoard === "ALL") { // ALL이면 특정 게시판을 선택해야 한다는 안내 메시지
     label.textContent = "게시판(NBA/EPL/이스포츠)을 왼쪽에서 선택한 후 글을 작성하세요.";
   } else {
-    label.textContent = currentBoard + " 게시판에 글쓰기";
+    label.textContent = currentBoard + " 게시판에 글쓰기"; // 정상 작동(ex : NBA 게시판에 글쓰기)
   }
 
-  // ✅ 히스토리에 '글쓰기 상태'로 기록 (cid = "NEW")
+  // 히스토리에 '글쓰기 상태'로 기록 (cid = "NEW")
   if (window.updateTabHistory && push) {
     updateTabHistory("cid", "NEW", true);
   }
@@ -357,11 +363,11 @@ function openWrite(push = true) {
 
 // 글쓰기 박스 닫기
 function closeWrite() {
-  const box = document.getElementById("writeBox");
-  const listBox = document.getElementById("postList");
+  const box = document.getElementById("writeBox"); // 글쓰기 화면
+  const listBox = document.getElementById("postList"); // 게시글 리스트 요소
 
-  if (box) box.classList.add("hidden");
-  if (listBox) listBox.classList.remove("hidden");
+  if (box) box.classList.add("hidden"); // 글쓰기 화면을 숨김
+  if (listBox) listBox.classList.remove("hidden"); // 게시글 목록 화면 재표시
 }
 
 function savePost() {
@@ -382,91 +388,101 @@ function savePost() {
     return;
   }
 
-  const file = imgInput && imgInput.files[0];
+  const file = imgInput && imgInput.files[0]; 
 
   // 실제 저장 로직
   function doSave(imageData) {
-    const list = getPostList();
+    const list = getPostList(); // 기존 게시글 목록 가져오기
     list.unshift({
-      id: "p_" + Date.now(),
+      id: "p_" + Date.now(), // 현재 시간을 기반으로 하여 고유 ID생성
       title,
       content,
-      board: currentBoard,
-      createdAt: Date.now(),
+      board: currentBoard, // 현재 선택된 게시판
+      createdAt: Date.now(), // 작성 날짜
       img: imageData || null,   // ★ 이미지 데이터 저장 (data URL)
-      comments: [],
-      views: 0,
-      up: 0,
-      down: 0
+      comments: [], // 댓글 배열(초기값 비어있음)
+      views: 0, // 조회수
+      up: 0, // 추천수
+      down: 0 // 비추천수
     });
-    savePostList(list);
+    savePostList(list); // 수정된 글 목록을 localStorage에 저장
 
     // 폼 초기화
     titleEl.value = "";
     contentEl.value = "";
-    if (imgInput) imgInput.value = "";
-    const preview = document.getElementById("postImagePreview");
-    if (preview) preview.innerHTML = "";
+    if (imgInput) imgInput.value = ""; // 파일 입력 초기화
+    const preview = document.getElementById("postImagePreview"); 
+    if (preview) preview.innerHTML = ""; // 미리보기 영역 존재시, 썸네일 삭제
 
-    closeWrite();
-    loadPosts();
+    closeWrite(); // 글쓰기 창 닫기
+    loadPosts(); // 목록 불러오기
 
     if (window.updateTabHistory) {
-      updateTabHistory("cid", "", true);
+      updateTabHistory("cid", "", true); // 히스토리 상태 업데이트
     }
   }
 
   // 이미지가 있으면 FileReader로 읽고, 없으면 바로 저장
   if (file) {
     const reader = new FileReader();
-    reader.onload = (e) => {
-      doSave(e.target.result);
+    // 파일 읽기가 끝나면 호출되는 콜백
+    reader.onload = (e) => { 
+      doSave(e.target.result); // 읽은 base64 문자열 전달
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file); // 이미지 파일 -> base64 변환 시작
   } else {
-    doSave(null);
+    doSave(null); // 파일이 없다면 바로 저장
   }
 }
 
 // 글 목록에서 글 클릭 → 상세 보기
 function openPost(postId, skipView, push = true) {
-  let list = getPostList();
-  const idx = list.findIndex(p => p.id === postId);
-  if (idx === -1) return;
+  let list = getPostList(); // 모든 게시글 리스트 가져오기
+  const idx = list.findIndex(p => p.id === postId); // postId와 동일한 id를 가진 게시글의 인덱스 찾기
+  if (idx === -1) return; // 해당 게시글이 없으면 종료
 
   // 조회수 증가 (댓글/추천으로 재렌더링할 땐 안 올림)
   if (!skipView) {
-    list[idx].views = (list[idx].views || 0) + 1;
-    savePostList(list);
-    list = getPostList();
+    list[idx].views = (list[idx].views || 0) + 1; // views 값 없으면 0으로 시작
+    savePostList(list); // 조회수 반영하여 저장
+    list = getPostList(); // 최신 데이터 다시 불러오기
   }
 
-  const post = list[idx];
-  currentPostId = postId;
+  const post = list[idx]; // 현재 보고있는 게시글
+  currentPostId = postId; // 댓글/추천 기능에서 사용
 
+  // 화면 요소 가져오기
   const detail = document.getElementById("postDetail");
   const listBox = document.getElementById("postList");
   const writeBox = document.getElementById("writeBox");
 
+  // 리스트 화면, 글쓰기 화면은 숨기기
   if (listBox) listBox.classList.add("hidden");
   if (writeBox) writeBox.classList.add("hidden");
+
+  // 상세보기 화면 요소가 존재하지 않으면 종료(에러방지)
   if (!detail) return;
 
+  // 상세보기 화면을 보여주기
   detail.classList.remove("hidden");
 
+  // 게시판 라벨 설정
   const boardLabel = post.board && post.board !== "ALL"
     ? post.board + " 이야기"
     : "커뮤니티";
 
+  // 제목, 내용 이스케이프 함수로 특수문자 보호, 줄바꿈 처리
   const safeTitle = escapeHtml(post.title);
   const safeContent = escapeHtml(post.content || "").replace(/\n/g, "<br>");
 
+  // 작성 날짜 변환
   let dateText = "";
   if (post.createdAt) {
     const d = new Date(post.createdAt);
-    dateText = d.toLocaleString();
+    dateText = d.toLocaleString(); // 한국 날짜/시간으로 자동 변환
   }
 
+  // 기본값
   const views = post.views || 0;
   const up = post.up || 0;
   const down = post.down || 0;
@@ -475,6 +491,8 @@ function openPost(postId, skipView, push = true) {
   // 댓글 리스트 HTML
   let commentsHtml = "";
   if (post.comments && post.comments.length > 0) {
+
+    // 댓글이 있다면 map으로 반복하여 HTML 생성
     commentsHtml = post.comments.map(c => {
       const cText = escapeHtml(c.text || "").replace(/\n/g, "<br>");
       let cDate = "";
@@ -490,9 +508,9 @@ function openPost(postId, skipView, push = true) {
       `;
     }).join("");
   } else {
+    // 댓글이 없을시
     commentsHtml = `<div class="empty-comment">첫 댓글을 남겨보세요.</div>`;
   }
-
   detail.innerHTML = `
     <div class="detail-top-bar">
       <button class="back-btn" onclick="backToList()">목록</button>
@@ -508,11 +526,13 @@ function openPost(postId, skipView, push = true) {
       </div>
       <div class="detail-content">
         ${post.img ? `<img src="${post.img}" class="detail-image" alt="게시물 이미지">` : ""}
-        ${safeContent}
+        ${safeContent} 
       </div>
     </article>
 
     <section class="comment-section">
+
+      <!-- 추천 / 비추천 버튼 -->
       <div class="detail-actions">
         <button class="vote-btn" onclick="votePost('up')">
           추천 <span class="count" id="voteUpCount">${up}</span>
@@ -522,17 +542,21 @@ function openPost(postId, skipView, push = true) {
         </button>
       </div>
 
+      <!-- 댓글 리스트 -->
       <h3 class="comment-title">댓글 ${commentCount}</h3>
       <div id="commentList" class="comment-list">
         ${commentsHtml}
       </div>
 
+      <!-- 댓글 작성 영역 -->
       <div class="comment-write">
         <textarea id="commentInput" placeholder="댓글을 입력하세요"></textarea>
         <button onclick="saveComment()">등록</button>
       </div>
     </section>
   `;
+
+  // 브라우저 히스토리에 상태 저장
   if (window.updateTabHistory && push) {
     updateTabHistory("cid", postId, true);
   }
@@ -540,16 +564,17 @@ function openPost(postId, skipView, push = true) {
 
 // 상세 화면 → 목록으로
 function backToList(push = true) {
-  currentPostId = null;
-  const detail = document.getElementById("postDetail");
-  const listBox = document.getElementById("postList");
+  currentPostId = null; // (상세 화면에서 나왔으므로) 현재 선택된 게시글 ID초기화
+  const detail = document.getElementById("postDetail"); // 상세화면 영역
+  const listBox = document.getElementById("postList"); // 목록 화면 영역
 
-  if (detail) detail.classList.add("hidden");
-  if (listBox) listBox.classList.remove("hidden");
+  if (detail) detail.classList.add("hidden"); // 상세 화면 숨기기
+  if (listBox) listBox.classList.remove("hidden"); // 게시글 목록 다시 표시
 
-  closeWrite();
-  loadPosts();
+  closeWrite(); // 글쓰기 창 닫기 
+  loadPosts(); // 게시글 목록 새로고침
 
+  // 브라우저 히스토리 갱신
   if (window.updateTabHistory && push) {
     updateTabHistory("cid", "", true);
   }
@@ -557,29 +582,40 @@ function backToList(push = true) {
 
 // 댓글 저장
 function saveComment() {
+  // 댓글 입력창 가져오기
   const input = document.getElementById("commentInput");
   if (!input) return;
-
+  // 입력값 가져오기 + 앞 뒤 공백 제거 
   const text = input.value.trim();
+
+  // 내용이 없다면 경고 후 종료
   if (!text) {
     alert("댓글을 입력하세요.");
     return;
   }
 
+  // 전체 게시글 리스트 가져오기
   const list = getPostList();
-  const idx = list.findIndex(p => p.id === currentPostId);
-  if (idx === -1) return;
 
+  // 현재 보고 있는 게시글의 index 찾기
+  const idx = list.findIndex(p => p.id === currentPostId);
+  if (idx === -1) return; // 게시글을 찾지 못한 경우(index값 -1) 종료
+
+  // 댓글 배열이 없거나 잘못된 타입이면 초기화
   if (!Array.isArray(list[idx].comments)) {
     list[idx].comments = [];
   }
 
+  // 새 댓글 추가 (내용 + 작성 시각)
   list[idx].comments.push({
     text,
     createdAt: Date.now()
   });
 
+  // 변경된 게시글 목록 저장
   savePostList(list);
+
+  // 댓글 입력창 비우기
   input.value = "";
 
   // 상세/목록 둘 다 갱신 (조회수는 안올라가게 skipView=true)
@@ -589,23 +625,24 @@ function saveComment() {
 
 // 추천 / 비추천
 function votePost(type) {
-  if (!currentPostId) return;
+  if (!currentPostId) return; // 현재 보고 있는 게시글이 없다면 종료
 
-  const list = getPostList();
-  const idx = list.findIndex(p => p.id === currentPostId);
-  if (idx === -1) return;
+  const list = getPostList(); // 전체 게시글 목록 가져오기
+  const idx = list.findIndex(p => p.id === currentPostId); // 현재 게시글의 인덱스 찾기
+  if (idx === -1) return; // 게시글을 찾지 못한 경우(index값 -1) 종료
 
-  if (type === "up") {
+  // 추천, 비추천 처리
+  if (type === "up") { 
     list[idx].up = (list[idx].up || 0) + 1;
   } else if (type === "down") {
     list[idx].down = (list[idx].down || 0) + 1;
   }
 
-  savePostList(list);
+  savePostList(list); // 변경 데이터 저장
 
   // 상세/목록 다시 그리기 (조회수 증가 없이)
   openPost(currentPostId, true, false);
-  loadPosts();
+  loadPosts(); // 목록 새로고침
 }
 
 // 정렬 탭 변경 + 히스토리 (이 부분은 그대로 두고)
@@ -647,4 +684,3 @@ if (window.setupTabHistory) {
 </script>
 </body>
 </html>
-
