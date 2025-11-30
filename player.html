@@ -1,28 +1,46 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!--한정헌-->
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <title>선수 상세 - ENS</title>
+
+  <!-- 전체 사이트 공통 스타일 -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- 선수/팀/경기/상품 데이터가 들어있는 파일 -->
   <script src="data.js"></script>
+
+  <!-- 상단 검색창용 통합 검색 스크립트 -->
   <script src="search.js" defer></script>
+
+  <!-- 로그인/로그아웃, 유저 표시 관련 스크립트 -->
   <script src="auth.js" defer></script>
+
+  <!-- 장바구니 관련 스크립트 (쇼핑 공통) -->
   <script src="cart.js" defer></script>
+
+  <!-- 탭 상태를 URL 히스토리와 연동해주는 공통 유틸 -->
   <script src="tabs-history.js"></script>
 </head>
+
+<!-- player-page 클래스: style.css에서 선수 상세 전용 스타일 조정용 -->
 <body class="player-page">
 <!-- 공통 헤더 -->
 <div class="header">
   <div class="top-row">
+    <!-- 로고: 클릭 시 메인(index.html)으로 이동 -->
     <a href="index.html" class="logo">ENS</a>
 
+    <!-- 상단 통합 검색창 -->
     <div class="search-box">
       <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
     </div>
 
+    <!-- 우측 로그인 상태 / 유저 이름 표시 영역 (auth.js에서 내용 채움) -->
     <div class="header-user" id="userDisplay"></div>
   </div>
 
+  <!-- 상단 카테고리 네비게이션 버튼 -->
   <div class="categories">
     <button onclick="location.href='index.html'">홈</button>
     <button onclick="location.href='nba.html'">NBA</button>
@@ -34,39 +52,49 @@
   </div>
 </div>
 
-<!-- 통합 검색 결과 박스 -->
+<!-- 통합 검색 결과 박스 (search.js에서 on/off + 내용 채움) -->
 <div id="searchResultBox" class="search-result-box"></div>
 
 <!-- ===== 선수 상세 메인 영역 ===== -->
 <main class="product-detail-container">
+  <!-- 기존 상품 상세 레이아웃(product-detail-layout)을 재사용 -->
   <div class="product-detail-layout">
-    <!-- 왼쪽: 이미지 -->
+
+    <!-- 왼쪽: 선수 이미지 영역 -->
     <section class="product-detail-left">
       <div class="product-gallery">
-        <!-- 썸네일은 일단 한 장만 사용 -->
+        <!-- 썸네일 영역: 현재는 한 장만 사용 (나중에 여러 장도 가능) -->
         <div class="product-thumbs">
           <button class="product-thumb active" id="thumbMain">
+            <!-- 썸네일 이미지 (JS에서 src 설정) -->
             <img id="playerThumbImg" src="" alt="">
           </button>
         </div>
 
+        <!-- 메인 큰 이미지 영역 -->
         <div class="product-main-image">
+          <!-- 메인 이미지 (JS에서 src 설정) -->
           <img id="playerMainImg" src="" alt="">
         </div>
       </div>
     </section>
 
-    <!-- 오른쪽: 선수 정보 (위키 스타일 카드) -->
+    <!-- 오른쪽: 선수 정보 (위키/프로필 카드 스타일) -->
     <section class="product-detail-right">
       <div class="player-info-card">
+        <!-- 카드 상단 헤더 영역 -->
         <div class="player-info-header">
           <div class="player-info-header-top">
+            <!-- 고정 태그: PLAYER -->
             <span class="player-info-tag">PLAYER</span>
+            <!-- 카테고리(NBA/EPL/E-스포츠 등) 표시 -->
             <span class="player-info-league" id="playerCategory">[카테고리]</span>
           </div>
+          <!-- 선수 이름 -->
           <h1 class="player-info-name" id="playerName">선수 이름</h1>
         </div>
 
+        <!-- 선수 상세 정보 테이블 -->
         <table class="player-info-table">
           <tbody>
             <tr>
@@ -107,7 +135,8 @@
             </tr>
             <tr>
               <th>수상 내역</th>
-              <td id="playerDesc"></td> <!-- 여기는 기존 desc 사용 -->
+              <!-- 여기에는 기존 data.js의 desc 필드를 사용 -->
+              <td id="playerDesc"></td>
             </tr>
 
           </tbody>
@@ -118,31 +147,47 @@
 </main>
 
 <script>
-  // ===== 공통: URL 파라미터 읽기 =====
+  // ===== 공통: URL 파라미터 읽기 유틸 =====
+  //  예: player.html?cat=NBA&name=LeBron%20James
   function getQueryParam(key) {
+    // window.location.search 에서 쿼리스트링을 파싱한 뒤,
+    // 원하는 key의 값을 반환 (없으면 null)
     return new URLSearchParams(window.location.search).get(key);
   }
 
-  const catParam  = getQueryParam("cat");   // "NBA" / "EPL" / "E-스포츠"
+  // URL에서 카테고리와 선수 이름 가져오기
+  const catParam  = getQueryParam("cat");   // "NBA" / "EPL" / "E-스포츠" 등
   const nameParam = getQueryParam("name");  // 선수 이름
 
+  /**
+   * 선수 데이터 찾기 함수
+   *  - category와 name을 기준으로 playerData에서 해당 선수 검색
+   *  - 1차: category가 일치하는 배열에서 이름 검색
+   *  - 2차: 못 찾으면 전체 카테고리를 돌면서 이름 검색
+   *
+   *  @param {string} category - 카테고리(NBA/EPL/E-스포츠)
+   *  @param {string} name     - 선수 이름
+   *  @returns { { player, category } | null }
+   */
   function findPlayer(category, name) {
-    // playerData가 아예 없을 때만 방어
+    // playerData가 로드되지 않은 경우 방어 코드
     if (typeof playerData === "undefined") {
       console.error("playerData가 로드되지 않았습니다.");
       return null;
     }
 
-    // 1) category 우선 검색
+    // 1) category가 유효하다면 해당 카테고리 안에서 우선 검색
     if (category && playerData[category]) {
       const list = playerData[category];
+      // 이름이 완전히 일치하는 선수 찾기
       const found = list.find(p => p.name === name);
       if (found) {
+        // 찾으면 선수 정보와 실제 카테고리 반환
         return { player: found, category };
       }
     }
 
-    // 2) 못 찾으면 전체에서 이름으로 검색
+    // 2) 못 찾았으면 playerData의 모든 카테고리를 돌면서 이름으로 검색
     for (let cat in playerData) {
       const list = playerData[cat];
       const found = list.find(p => p.name === name);
@@ -151,63 +196,83 @@
       }
     }
 
+    // 끝까지 못 찾으면 null
     return null;
   }
 
+  /**
+   * 화면에 선수 상세 정보를 렌더링하는 함수
+   * - URL 파라미터로 받은 name / cat 을 기준으로 선수 찾기
+   * - 찾은 정보를 각 DOM 요소에 채워 넣음
+   */
   function renderPlayerDetail() {
+    // 전체 컨테이너 (에러 메시지 표시할 때도 사용)
     const container = document.querySelector(".product-detail-container");
     if (!container) return;
 
+    // 선수 이름 파라미터가 아예 없으면 에러 메시지 출력
     if (!nameParam) {
       container.innerHTML = '<p class="empty-post">선수 정보가 없습니다.</p>';
       return;
     }
 
+    // URL에서 넘어온 cat / name 으로 선수 데이터 찾기
     const result = findPlayer(catParam, nameParam);
     if (!result) {
+      // 데이터 상에 일치하는 선수가 없을 경우
       container.innerHTML = '<p class="empty-post">선수를 찾을 수 없습니다.</p>';
       return;
     }
 
+    // 찾은 결과 구조 분해: player 객체와 실제 카테고리 이름
     const { player, category } = result;
 
+    // 이미지 경로 및 설명 텍스트
     const img = player.img || "";
     const desc = player.desc || "";
 
+    // DOM 요소들 캐싱 (한 번만 getElementById 호출)
     const mainImg  = document.getElementById("playerMainImg");
     const thumbImg = document.getElementById("playerThumbImg");
     const nameEl   = document.getElementById("playerName");
     const catEl    = document.getElementById("playerCategory");
-    const teamEl    = document.getElementById("playerTeam");
-    const rlnameEl    = document.getElementById("playerRlName");
-    const birthEl   = document.getElementById("playerBirth");
-    const nationEl  = document.getElementById("playerNation");
-    const posEl     = document.getElementById("playerPosition");
-    const prizeEl   = document.getElementById("playerPrize");
-    const debutEl   = document.getElementById("playerDebut");
-    const heightEl   = document.getElementById("playerHeight");
-    const weightEl   = document.getElementById("playerWeight");
-    const descEl    = document.getElementById("playerDesc");
+    const teamEl   = document.getElementById("playerTeam");
+    const rlnameEl = document.getElementById("playerRlName");
+    const birthEl  = document.getElementById("playerBirth");
+    const nationEl = document.getElementById("playerNation");
+    const posEl    = document.getElementById("playerPosition");
+    const prizeEl  = document.getElementById("playerPrize");
+    const debutEl  = document.getElementById("playerDebut");
+    const heightEl = document.getElementById("playerHeight");
+    const weightEl = document.getElementById("playerWeight");
+    const descEl   = document.getElementById("playerDesc");
 
+    // 각 필드에 playerData에 정의된 값 채워 넣기
+    // (값이 없으면 빈 문자열로 처리해서 'undefined' 같은 텍스트가 나오지 않게)
     if (rlnameEl)  rlnameEl.textContent  = player.rlname    || "";
-    if (teamEl)   teamEl.textContent   = player.team     || "";
-    if (birthEl)  birthEl.textContent  = player.birth    || "";
-    if (nationEl) nationEl.textContent = player.nation   || "";
-    if (posEl)    posEl.textContent    = player.position || "";
-    if (prizeEl)  prizeEl.textContent  = player.prize    || "";
-    if (debutEl)  debutEl.textContent  = player.debut    || "";
-    if (heightEl) heightEl.textContent = player.height   || "";
-    if (weightEl) weightEl.textContent = player.weight   || "";
-    if (descEl)   descEl.textContent   = player.desc     || "";
+    if (teamEl)    teamEl.textContent    = player.team      || "";
+    if (birthEl)   birthEl.textContent   = player.birth     || "";
+    if (nationEl)  nationEl.textContent  = player.nation    || "";
+    if (posEl)     posEl.textContent     = player.position  || "";
+    if (prizeEl)   prizeEl.textContent   = player.prize     || "";
+    if (debutEl)   debutEl.textContent   = player.debut     || "";
+    if (heightEl)  heightEl.textContent  = player.height    || "";
+    if (weightEl)  weightEl.textContent  = player.weight    || "";
+    if (descEl)    descEl.textContent    = player.desc      || "";
 
+    // 메인 이미지, 썸네일 이미지 src 설정
     if (mainImg)  mainImg.src  = img;
     if (thumbImg) thumbImg.src = img;
 
+    // 이름, 카테고리 텍스트 설정
     if (nameEl)   nameEl.textContent = player.name || "";
     if (catEl)    catEl.textContent  = category ? `[${category}] 선수` : "";
+
+    // 수상 내역(desc)는 위에서 이미 채웠지만, 한 번 더 방어적으로 세팅
     if (descEl)   descEl.textContent = desc;
   }
 
+  // DOM이 모두 로드되면 선수 상세 정보 렌더링 실행
   document.addEventListener("DOMContentLoaded", () => {
     renderPlayerDetail();
   });
