@@ -1,21 +1,22 @@
 /* ---------------------------------------------------
-   ENS 통합 스타일 (메인 / 쇼핑 / 경기 / 커뮤니티)
+   ENS 통합 스타일 (메인 / 쇼핑 / 경기 / 커뮤니티 / 장바구니 / 로그인) - 한정헌
 --------------------------------------------------- */
 
-/* === 기본 설정 === */
+/* === 기본 리셋 및 공통값 === */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* 사이트 전체에서 사용하는 색상/모양/애니메이션 값 */
 :root {
   --bg: #222;
   --bg-deep: #111;
   --surface: #2b2b2b;
   --surface-soft: #333;
-  --accent: #0074e9;
-  --accent-soft: #00aaff;
+  --accent: #0066ff;
+  --accent-soft: #0066ff;
   --text: #ffffff;
   --text-muted: #bbbbbb;
   --border-subtle: #333;
@@ -27,6 +28,7 @@
   --transition-fast: 0.18s ease-out;
 }
 
+/* 전체 문서 기본 스타일 */
 body {
   font-family: Arial, "Noto Sans KR", sans-serif;
   background: var(--bg);
@@ -34,13 +36,13 @@ body {
   line-height: 1.4;
 }
 
-/* 링크 기본값 */
+/* 링크 기본 스타일 제거 (밑줄 X, 색상 상속) */
 a {
   color: inherit;
   text-decoration: none;
 }
 
-/* 스크롤바 */
+/* 브라우저 스크롤바 커스터마이징 (웹킷 계열) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -54,7 +56,7 @@ a {
 }
 
 /* ---------------------------------------------------
-   0. 공통 헤더 (4페이지 공용)
+   0. 공통 헤더 (모든 페이지 공용)
 --------------------------------------------------- */
 
 .header {
@@ -66,25 +68,25 @@ a {
   flex-direction: column;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  position: sticky;
+  position: sticky;        /* 스크롤 시 상단 고정 */
   top: 0;
   z-index: 50;
 }
 
-/* 로고 + 검색창 + 유저 줄 */
+/* 로고 / 검색창 / 유저 정보가 들어가는 상단 1줄 */
 .header .top-row {
   width: 100%;
   max-width: 1100px;
 
   display: grid;
-  grid-template-columns: 1fr 2fr 1fr;  /* 좌 / 중앙 / 우 */
+  grid-template-columns: 1fr 2fr 1fr;  /* 좌: 로고 / 중앙: 검색 / 우: 유저 */
   align-items: center;
 
   padding: 0 32px;
   box-sizing: border-box;
 }
 
-/* 로고 */
+/* 로고 스타일 */
 .header .logo {
   font-size: 1.8rem;
   font-weight: bold;
@@ -92,7 +94,7 @@ a {
   justify-self: start;
 }
 
-/* 검색창을 중앙에 */
+/* 검색창: 가운데 정렬 */
 .header .search-box {
   justify-self: center;
   display: flex;
@@ -100,6 +102,7 @@ a {
   width: 100%;
 }
 
+/* 헤더 검색 인풋 (공통 검색 인풋 포함) */
 .header .search-box input,
 .header .search input {
   width: 90%;
@@ -108,33 +111,34 @@ a {
   border-radius: 10px;
   border: none;
   outline: none;
-  background: #1b1b1f;
+  background: #000000;
   color: #fff;
 }
 
-/* 유저 정보 */
+/* 유저 정보 (로그인 상태 표시) */
 .header .header-user {
   justify-self: end;
   font-size: 0.95rem;
-  color: #9ddcff;
+  color: #0066ff;
 }
 
+/* 유저 이름 강조 색상 */
 #userDisplay,
 #userInfo {
   font-weight: bold;
   color: var(--accent-soft);
 }
 
-/* 공통 카테고리 버튼 디자인 */
+/* 공통 카테고리 버튼 디자인 (헤더/카테고리바 공용) */
 .header .categories button,
 .categories button,
 .category-bar button {
-  background: var(--accent-soft);
+  background: var(--accent);
   color: #ffffff;
   border-radius: 10px;
   border: 1px solid rgba(6, 45, 95, 0.8);
   padding: 8px 18px;
-  font-size: 0.95rem;
+  font-size: 0.5rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
@@ -147,7 +151,8 @@ a {
               0 6px 14px rgba(15,23,42,0.7);
   transform: translateY(-1px);
 }
-/* 헤더 상단 카테고리 버튼: 크기 키우고, 동일한 너비로 */
+
+/* 헤더 하단 카테고리 버튼 영역 */
 .header .categories {
   margin-top: 14px;
   display: flex;
@@ -160,14 +165,16 @@ a {
   box-shadow: 0 2px 6px rgba(0,0,0,0.5);
 }
 
+/* 헤더 카테고리 버튼: 동일 폭 / 크게 표시 */
 .header .categories button {
-  flex: 1 1 150px;   /* 버튼들을 같은 비율로 나눠 가짐 */
-  max-width: 100px;  /* 너무 길어지지 않게 상한 설정 */
-  padding: 12px 0;   /* 세로로 더 두툼하게 */
-  font-size: 1.5rem;   /* 글씨도 조금 키우기 */
+  flex: 1 1 150px;   /* 버튼 영역 균등 분배 */
+  max-width: 100px;  /* 너무 길어지지 않도록 상한 */
+  padding: 12px 0;   /* 세로 두께 증가 */
+  font-size: 1.5rem;   /* 텍스트 크기 */
   text-align: center;
 }
-/* 헤더 로그인/로그아웃/장바구니 버튼 */
+
+/* 헤더 로그인/로그아웃/장바구니 버튼 (우측 상단) */
 .btn-login,
 .btn-logout,
 .btn-cart {
@@ -191,7 +198,6 @@ a {
   font-size: 0.85rem;
 }
 
-
 /* ---------------------------------------------------
    공통 버튼 스타일
 --------------------------------------------------- */
@@ -201,6 +207,7 @@ button,
   font-family: inherit;
 }
 
+/* 기본 파란 버튼 */
 .btn {
   background: var(--accent);
   color: #fff;
@@ -225,7 +232,7 @@ button,
 }
 
 /* ---------------------------------------------------
-   공통 컨테이너
+   공통 컨테이너(페이지 max-width)
 --------------------------------------------------- */
 
 .page-root {
@@ -235,6 +242,7 @@ button,
   padding: 20px 20px 40px;
 }
 
+/* 메인/게시글/상품/경기 목록 등 공통 컨테이너 */
 .container,
 #mainContent,
 #postList,
@@ -245,7 +253,7 @@ button,
   padding: 20px;
 }
 
-/* 섹션 제목 */
+/* 섹션 제목 공통 스타일 */
 .section-title,
 .section h2,
 .shop-container h1,
@@ -257,8 +265,7 @@ button,
 }
 
 /* ---------------------------------------------------
-   통합 검색 결과 박스
-   #searchResultBox / .search-result-box 공통
+   통합 검색 결과 박스 (#searchResultBox)
 --------------------------------------------------- */
 
 #searchResultBox,
@@ -270,7 +277,7 @@ button,
   padding: 20px;
   border-radius: 15px;
   text-align: left;
-  display: none;   /* JS에서 on/off */
+  display: none;   /* JS에서 검색 시 on/off */
   z-index: 9999;
   position: relative;
   box-shadow: var(--shadow-soft);
@@ -290,7 +297,7 @@ button,
   margin-bottom: 14px;
 }
 
-/* 검색 / 경기 공통 카드 */
+/* 검색 / 경기 공통 카드 스타일 */
 .card {
   background: #202020;
   border-radius: 10px;
@@ -309,27 +316,27 @@ button,
    1. 메인 페이지 (배너 + 선수 리스트)
 --------------------------------------------------- */
 
-/* 메인 콘텐츠 영역 */
+/* 메인 콘텐츠 전체 영역 */
 .main-content-area {
   max-width: 1200px;
   margin: 20px auto 40px;
 }
 
-/* 광고 배너 슬라이더 */
-/* ===== 메인 페이지 배너 ===== */
+/* ===== 광고/메인 배너 슬라이더(공통 구조) ===== */
 
 .ad-banner-slider {
   position: relative;
   max-width: 1100px;          /* 배너 실제 너비 */
   width: 100%;
   margin: 40px auto 10px auto;
-  padding: 0 40px;            /* 양쪽에 여유 → 화살표가 이미지 위에 살짝 겹치는 느낌 */
+  padding: 0 40px;            /* 화살표 여백 */
   box-sizing: border-box;
 }
-/* ===== 메인 배너 (ENS 메인) ===== */
+
+/* ===== ENS 메인에서 사용하는 메인 배너 ===== */
 .main-banner {
   width: 100%;
-  max-width: 1100px;           /* 배너 실제 폭 */
+  max-width: 1100px;           /* 배너 폭 */
   margin: 40px auto 20px auto; /* 위/아래 여백 + 가운데 정렬 */
   position: relative;
   cursor: pointer;
@@ -343,7 +350,7 @@ button,
   box-shadow: 0 12px 30px rgba(0,0,0,0.7);
 }
 
-/* 가운데 큰 텍스트 */
+/* 배너 중앙 텍스트 (프로모션 문구) */
 .banner-text {
   position: absolute;
   inset: 0;                    /* 상하좌우 0 → 전체 덮기 */
@@ -357,7 +364,7 @@ button,
   pointer-events: none;        /* 클릭은 아래 이미지로 전달 */
 }
 
-/* 좌우 화살표 공통 */
+/* 메인 배너 좌우 화살표 공통 */
 .banner-left,
 .banner-right {
   position: absolute;
@@ -379,7 +386,7 @@ button,
   z-index: 5;
 }
 
-.banner-left  { left: 14px; }  /* 이미지 안쪽으로 살짝 */
+.banner-left  { left: 14px; }  /* 이미지 좌측 안쪽 */
 .banner-right { right: 14px; }
 
 .banner-left:hover,
@@ -389,13 +396,13 @@ button,
   transform: translateY(-50%) translateY(-1px);
 }
 
-/* 실제 배너 영역 */
+/* 공통 광고 배너 컨테이너 */
 .ad-banner-slider .ad-banner {
   position: relative;
   width: 100%;
   height: 400px;
   overflow: hidden;
-  border-radius: 18px;        /* 이미지 모서리 둥글게 */
+  border-radius: 18px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   cursor: pointer;
 }
@@ -406,7 +413,7 @@ button,
   object-fit: cover;
 }
 
-/* 가운데 텍스트 */
+/* 공통 배너 텍스트 */
 .ad-banner-text {
   position: absolute;
   inset: 0;
@@ -420,7 +427,7 @@ button,
   pointer-events: none;
 }
 
-/* 좌우 화살표 */
+/* 공통 배너 좌우 화살표 */
 .ad-banner-slider .ad-arrow {
   position: absolute;
   top: 50%;
@@ -440,9 +447,9 @@ button,
   transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
 }
 
-/* 이미지 안쪽으로 살짝 들어오게 */
+/* 이미지 안쪽으로 위치 조정 */
 .ad-banner-slider .ad-arrow.left {
-  left: 52px;   /* ← padding 40 + 살짝 안쪽 */
+  left: 52px;
 }
 .ad-banner-slider .ad-arrow.right {
   right: 52px;
@@ -454,8 +461,7 @@ button,
   transform: translateY(-50%) translateY(-1px);
 }
 
-
-/* 가로 스크롤 카드 (메인 선수 리스트) */
+/* 메인/쇼핑 공통 가로 스크롤 카드 래퍼 (선수/상품) */
 .products-scroll {
   display: flex;
   overflow-x: auto;
@@ -515,7 +521,7 @@ button,
 }
 
 /* ---------------------------------------------------
-   2. 쇼핑 페이지
+   2. 쇼핑 페이지 (리스트 + 상세)
 --------------------------------------------------- */
 
 .shop-container {
@@ -524,7 +530,7 @@ button,
   padding: 0 20px 30px;
 }
 
-/* 상단 배너 */
+/* 쇼핑 상단 배너(프로모션 영역) */
 .shop-banner {
   position: relative;
   width: 100%;
@@ -567,7 +573,7 @@ button,
   opacity: 0.9;
 }
 
-/* 왼쪽 카테고리 + 가운데 상품 레이아웃 */
+/* 쇼핑 레이아웃: 좌측 카테고리 / 우측 상품 목록 */
 .shop-layout {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
@@ -613,7 +619,7 @@ button,
   background: #0f172a;
 }
 
-/* 가운데 상품 영역 */
+/* 가운데 상품 리스트 박스 */
 .shop-main {
   background: #18181b;
   border-radius: 12px;
@@ -631,7 +637,7 @@ button,
   font-size: 1.2rem;
 }
 
-/* 상품 그리드: 기본 4개씩 */
+/* 상품 그리드: 기본 4열 */
 .products-grid,
 .products {
   display: grid;
@@ -639,7 +645,7 @@ button,
   gap: 20px;
 }
 
-/* 화면 줄어들 때 3/2/1개로 줄이기 */
+/* 반응형: 상품 그리드 열 수 감소 */
 @media (max-width: 1100px) {
   .products-grid,
   .products {
@@ -670,6 +676,7 @@ button,
   padding: 0 20px;
 }
 
+/* 상세 상단 레이아웃: 왼쪽 이미지 / 오른쪽 정보 */
 .product-detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); /* 왼쪽: 이미지, 오른쪽: 정보 */
@@ -681,10 +688,10 @@ button,
 }
 .product-detail-info {
   display: flex;
-  flex-direction: column;   /* 위에 제목/가격/설명, 아래에 버튼 */
+  flex-direction: column;   /* 제목/가격/설명 위, 버튼 아래 */
 }
 
-/* 갤러리 (썸네일 + 메인이미지) */
+/* 상세 갤러리 (왼쪽) - 썸네일 + 메인 이미지 */
 .product-gallery {
   display: grid;
   grid-template-columns: 100px minmax(0, 1fr); /* 썸네일 / 메인 */
@@ -696,9 +703,12 @@ button,
   flex-direction: column;
   gap: 8px;
 }
+
+/* 썸네일이 여러 개 있을 경우 2번째 이후는 기본 숨김(필요시 수정) */
 .product-thumbs .product-thumb:nth-child(n+2) {
   display: none;
 }
+
 .product-thumb {
   width: 100%;
   aspect-ratio: 3 / 4;
@@ -720,6 +730,7 @@ button,
   border-color: var(--accent-soft);
 }
 
+/* 메인 이미지 박스 */
 .product-main-image {
   background: #050816;
   border-radius: 14px;
@@ -735,7 +746,7 @@ button,
   object-fit: contain;
 }
 
-/* 오른쪽 정보 영역 (이전 코드랑 거의 동일) */
+/* 오른쪽 정보 영역 */
 .product-detail-info h1 {
   font-size: 1.4rem;
   margin-bottom: 10px;
@@ -744,7 +755,7 @@ button,
 .product-detail-price {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #f97316;
+  color: #0066ff;
   margin-bottom: 12px;
 }
 
@@ -755,14 +766,14 @@ button,
   line-height: 1.5;
 }
 
+/* 장바구니/바로구매 버튼 영역 */
 .product-detail-actions {
   position: relative;
-  margin-top: auto;      /* 남는 공간을 전부 위로 → 버튼이 맨 아래로 내려감 */
-  padding-top: 24px;     /* 위 내용이랑 간격 */
+  margin-top: auto;      /* 남는 공간을 위로 밀어 버튼을 아래로 */
+  padding-top: 24px;
   display: flex;
   gap: 12px;
 }
-
 
 .product-detail-actions button {
   flex: 1;
@@ -775,12 +786,14 @@ button,
   transition: transform 0.08s, box-shadow 0.12s, background 0.12s;
 }
 
+/* 장바구니 버튼 */
 .btn-cart {
   background: #111827;
   border: 1px solid var(--accent-soft);
   color: #e5e7eb;
 }
 
+/* 바로구매 버튼 */
 .btn-buy {
   background: var(--accent-soft);
   color: #0b1120;
@@ -796,7 +809,7 @@ button,
   box-shadow: none;
 }
 
-/* ===== 아래 탭 영역 (정보 / 구매후기) ===== */
+/* ===== 상품 상세 하단 탭 영역 (정보 / 구매후기) ===== */
 
 .product-detail-tabs {
   margin-top: 24px;
@@ -806,6 +819,7 @@ button,
   box-shadow: var(--shadow-soft);
 }
 
+/* 탭 버튼 줄 */
 .product-tabs {
   display: flex;
   gap: 12px;
@@ -828,6 +842,7 @@ button,
   background: #1f2937;
 }
 
+/* 탭 컨텐츠 패널 */
 .product-tab-panel {
   display: none;
   font-size: 0.95rem;
@@ -839,7 +854,7 @@ button,
   display: block;
 }
 
-/* 정보 탭 안쪽 */
+/* 정보 탭 내부 스타일 */
 .tab-info-title {
   font-size: 1rem;
   font-weight: 600;
@@ -853,27 +868,24 @@ button,
   font-size: 0.9rem;
 }
 
-/* 리뷰 리스트 */
+/* (리뷰용 기본 스타일 – 현재는 상세 JS에서 별도 구조 사용) */
 .review-item {
   padding: 10px 0;
   border-bottom: 1px solid #1f2937;
 }
-
 .review-item:last-child {
   border-bottom: none;
 }
-
 .review-meta {
   font-size: 0.8rem;
   color: #9ca3af;
   margin-bottom: 4px;
 }
-
 .review-text {
   font-size: 0.95rem;
 }
 
-/* 반응형 */
+/* 쇼핑 상세 반응형 */
 @media (max-width: 900px) {
   .product-detail-layout {
     grid-template-columns: 1fr;
@@ -897,7 +909,8 @@ button,
     min-width: 80px;
   }
 }
-/* 쇼핑/장바구니 로그인 오버레이 */
+
+/* 쇼핑/장바구니 로그인 오버레이 (비로그인 시 화면 위에 띄우는 안내) */
 #shopLoginOverlay {
   position: fixed;
   inset: 0;
@@ -947,6 +960,8 @@ button,
   pointer-events: none;
   user-select: none;
 }
+
+/* 쇼핑 상단 안내/장바구니 링크 */
 .shop-main-info {
   font-size: 0.85rem;
   color: var(--text-muted);
@@ -967,11 +982,12 @@ button,
 .shop-cart-link:hover {
   background: #111827;
 }
-/* 장바구니 담기 토스트 – 장바구니 버튼 위쪽 */
+
+/* 장바구니 담기 토스트 – 장바구니 버튼 위쪽에 띄우는 알림 */
 #cartToast {
   position: absolute;      /* 버튼 영역 기준으로 배치 */
   bottom: 100%;            /* 아래쪽(버튼줄) 위에 붙이기 */
-  left: 50%;                /* 오른쪽 정렬 (원하면 left:50%로 바꾸고 transform 사용해도 됨) */
+  left: 50%;
   transform: translateX(-75%);
   margin-bottom: 10px;
   display: none;
@@ -998,7 +1014,7 @@ button,
   padding: 6px 14px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: #2563eb;
+  background: #0066ff;
   color: #ffffff;
   cursor: pointer;
 }
@@ -1006,10 +1022,8 @@ button,
   background: #1d4ed8;
 }
 
-
 /* ---------------------------------------------------
-   3. 경기 페이지
-   (연도 → 월 탭 → 날짜별 섹션)
+   3. 경기 페이지 (연도 → 월 → 팀 → 날짜별 경기 리스트)
 --------------------------------------------------- */
 
 .game-container {
@@ -1018,7 +1032,7 @@ button,
   padding: 0 20px 20px;
 }
 
-/* 상단 타입 탭 (전체 / NBA / EPL / E-스포츠) */
+/* 상단 타입 탭 (NBA / EPL / E-스포츠) */
 .game-type-tabs {
   display: flex;
   justify-content: center;
@@ -1041,7 +1055,7 @@ button,
   color: #0b1120;
 }
 
-/* 시즌(연도) */
+/* 시즌(연도) 타이틀 */
 .game-season-header {
   text-align: center;
   margin-bottom: 8px;
@@ -1051,7 +1065,7 @@ button,
   font-weight: 700;
 }
 
-/* 월 탭 */
+/* 월 탭 (1~12월) */
 .game-month-tabs {
   display: flex;
   justify-content: center;
@@ -1073,12 +1087,12 @@ button,
   color: #0b1120;
 }
 
-/* 스케줄 전체 영역 */
+/* 전체 스케줄 영역 */
 .game-schedule {
   margin-top: 8px;
 }
 
-/* 날짜별 박스 */
+/* 날짜별 박스 컨테이너 */
 .game-day-section {
   background: #0b1120;
   border-radius: 16px;
@@ -1086,6 +1100,8 @@ button,
   box-shadow: var(--shadow-soft);
   overflow: hidden;
 }
+
+/* 날짜 헤더 (예: 3월 1일 (금)) */
 .game-day-header {
   padding: 10px 18px;
   border-bottom: 1px solid #111827;
@@ -1094,10 +1110,10 @@ button,
   font-size: 0.9rem;
 }
 
-/* 날짜 안의 테이블 */
+/* 날짜 내 경기 목록 래퍼 */
 .game-day-table { }
 
-/* 한 경기 줄 */
+/* 한 경기 한 줄 */
 .schedule-row {
   display: grid;
   grid-template-columns: 80px minmax(0, 1fr) 70px;
@@ -1115,13 +1131,13 @@ button,
   background: #111827;
 }
 
-/* 왼쪽 시간 */
+/* 경기 시간 (왼쪽) */
 .schedule-time {
   font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
 
-/* 가운데 정보 */
+/* 가운데 메인 정보 (리그/팀명/장소) */
 .schedule-main {
   display: flex;
   flex-direction: column;
@@ -1134,7 +1150,7 @@ button,
   color: var(--accent-soft);
 }
 
-/* 팀 VS 팀 (가운데 기준) */
+/* 팀 VS 팀 영역 */
 .schedule-body {
   display: flex;
   align-items: center;
@@ -1158,20 +1174,20 @@ button,
   font-weight: 700;
 }
 
-/* 장소, 기타 정보 */
+/* 장소/기타 메타 정보 */
 .schedule-meta {
   font-size: 0.75rem;
   color: var(--text-muted);
 }
 
-/* 오른쪽 기록 버튼 텍스트 */
+/* 오른쪽 '기록 >' 텍스트 */
 .schedule-more {
   justify-self: end;
   font-size: 0.78rem;
   color: var(--accent-soft);
 }
 
-/* 빈 상태 */
+/* 해당 월에 경기가 하나도 없을 때 */
 .schedule-empty {
   padding: 40px 16px;
   text-align: center;
@@ -1179,6 +1195,7 @@ button,
   color: var(--text-muted);
 }
 
+/* 경기 목록 반응형 */
 @media (max-width: 700px) {
   .game-container {
     padding: 0 12px 16px;
@@ -1190,7 +1207,8 @@ button,
     display: none;
   }
 }
-/* 월 아래 팀 선택 바 */
+
+/* 월 아래 팀 선택 바 (특정 팀 필터) */
 .game-team-tabs {
   margin: 6px 0 12px;
   display: flex;
@@ -1199,6 +1217,9 @@ button,
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
+
+  justify-content: flex-start;  /* 왼쪽부터 배치 */
+  padding: 0 16px 4px;          /* 좌우에 여유 공간 주기 */
 }
 .game-team-tabs::-webkit-scrollbar {
   height: 6px;
@@ -1222,19 +1243,20 @@ button,
 /* ---------------------------------------------------
    4. 커뮤니티 페이지
 --------------------------------------------------- */
+
+/* 공통 hidden 유틸리티 (display: none) */
 .hidden {
   display: none !important;
 }
 
-/*  4. 커뮤니티 페이지
---------------------------------------------------- */
-
+/* 커뮤니티 메인 컨테이너 */
 .community-container {
   max-width: 1200px;
   margin: 20px auto 40px;
   padding: 0 20px 20px;
 }
 
+/* 좌측 사이드바 / 가운데 게시판 / 우측 배너 레이아웃 */
 .community-layout {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr) 260px;
@@ -1242,7 +1264,7 @@ button,
   align-items: flex-start;
 }
 
-/* 왼쪽 사이드바 */
+/* 왼쪽 사이드바 박스 */
 .community-sidebar {
   background: #18181b;
   border-radius: 12px;
@@ -1250,6 +1272,7 @@ button,
   box-shadow: var(--shadow-soft);
 }
 
+/* '글쓰기' 버튼 */
 .community-sidebar .write-btn {
   width: 100%;
   padding: 10px 0;
@@ -1266,6 +1289,7 @@ button,
   background: var(--accent-soft);
 }
 
+/* 게시판 제목 텍스트 */
 .board-title {
   font-size: 0.85rem;
   font-weight: 700;
@@ -1273,6 +1297,7 @@ button,
   opacity: 0.8;
 }
 
+/* 게시판 목록 버튼 */
 .board-list {
   display: flex;
   flex-direction: column;
@@ -1297,7 +1322,7 @@ button,
   background: #0f172a;
 }
 
-/* 가운데 메인 영역 */
+/* 가운데 메인 게시판 영역 */
 .community-main {
   background: #18181b;
   border-radius: 12px;
@@ -1305,6 +1330,7 @@ button,
   box-shadow: var(--shadow-soft);
 }
 
+/* 상단 헤더 줄 (게시판 이름 + 정렬 버튼 등) */
 .community-header-row {
   display: flex;
   justify-content: space-between;
@@ -1338,7 +1364,7 @@ button,
   color: var(--text-muted);
 }
 
-/* 오른쪽 배너 영역 */
+/* 오른쪽 배너/정보 영역 */
 .community-right {
   display: flex;
   flex-direction: column;
@@ -1359,20 +1385,22 @@ button,
   gap: 8px;
 }
 
+/* 게시판 태그 */
 .post-board-tag {
   font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #111827;
+  background: #0066ff;
   border: 1px solid #1d4ed8;
 }
 
+/* 게시글이 없을 때 표시 */
 .empty-post {
   opacity: .6;
   font-size: 0.9rem;
 }
 
-/* 반응형 (화면 좁을 때 한 컬럼으로) */
+/* 커뮤니티 반응형: 좁은 화면에서는 한 컬럼 + 오른쪽 배너 숨김 */
 @media (max-width: 960px) {
   .community-layout {
     grid-template-columns: 1fr;
@@ -1382,8 +1410,7 @@ button,
   }
 }
 
-
-/* 글쓰기 박스 */
+/* 글쓰기 박스 전체 */
 .write-box {
   background: #2b2b2b;
   padding: 16px;
@@ -1406,17 +1433,17 @@ button,
   font-weight: 600;
 }
 .write-box button:hover {
-  background: #007acc;
+  background: #0066ff;
 }
 
-/* 커뮤니티 글 리스트 */
+/* 커뮤니티 글 리스트 컨테이너 */
 .community-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* 글 카드 */
+/* 글 카드(목록용) */
 .post {
   background: #2c2c2c;
   padding: 14px;
@@ -1448,14 +1475,14 @@ button,
   opacity: 0.9;
 }
 
-/* 작은 텍스트 */
+/* 공통 작은 글자 */
 .small {
   font-size: 0.85em;
   color: #bbb;
   margin-top: 4px;
 }
 
-/* 댓글 박스 */
+/* 댓글 박스 (게시글 상세 내부) */
 .comment {
   background: #333;
   padding: 8px;
@@ -1464,7 +1491,7 @@ button,
   font-size: 0.9rem;
 }
 
-/* 입력 요소 (커뮤니티, 모달 공통) */
+/* 입력 요소 공통 (커뮤니티, 모달 등) */
 input,
 textarea,
 select {
@@ -1483,7 +1510,8 @@ textarea {
   height: 80px;
   resize: none;
 }
-/* 상세 보기 영역 */
+
+/* 상세 보기 영역(게시글 상세) */
 .post-detail {
   margin-top: 4px;
 }
@@ -1495,6 +1523,7 @@ textarea {
   margin-bottom: 6px;
 }
 
+/* 뒤로가기 버튼 */
 .back-btn {
   border: none;
   background: transparent;
@@ -1508,6 +1537,7 @@ textarea {
   background: #111827;
 }
 
+/* 상세 카드 박스 */
 .detail-card {
   background: #2c2c2c;
   border-radius: 12px;
@@ -1539,12 +1569,15 @@ textarea {
   font-size: 0.9rem;
 }
 
+/* 상세 본문 텍스트 */
 .detail-content {
   font-size: 0.9rem;
   line-height: 1.5;
   white-space: normal;
   word-break: break-word;
 }
+
+/* 좋아요/추천 등 액션 버튼 영역 */
 .detail-actions {
   display: flex;
   align-items: center;
@@ -1557,7 +1590,7 @@ textarea {
   border-radius: 999px;
   padding: 6px 12px;
   font-size: 0.85rem;
-  background: #18181b;
+  background: #0066ff;
   color: #e5e5e5;
   cursor: pointer;
   display: inline-flex;
@@ -1568,10 +1601,10 @@ textarea {
   font-weight: 600;
 }
 .vote-btn:hover {
-  background: #111827;
+  background: #0034a5;
 }
 
-/* 댓글 영역 */
+/* 댓글 섹션(상세 하단 공용) */
 .comment-section {
   background: #2c2c2c;
   border-radius: 12px;
@@ -1584,6 +1617,7 @@ textarea {
   font-size: 0.95rem;
 }
 
+/* 커뮤니티용 댓글 리스트 (상단에서 한 번 정의됨) */
 .comment-list {
   display: flex;
   flex-direction: column;
@@ -1651,6 +1685,7 @@ textarea {
 .comment-write button:hover {
   background: var(--accent-soft);
 }
+
 /* 글쓰기: 이미지 첨부 영역 */
 .write-image-row {
   margin: 8px 0 10px;
@@ -1666,6 +1701,7 @@ textarea {
   font-size: 0.8rem;
 }
 
+/* 글쓰기 시 이미지 미리보기 */
 .post-image-preview img {
   margin-top: 6px;
   max-width: 100%;
@@ -1674,7 +1710,7 @@ textarea {
   display: block;
 }
 
-/* 목록 썸네일 */
+/* 글 목록 썸네일 (작은 이미지) */
 .post-thumb {
   width: 90px;
   height: 90px;
@@ -1684,7 +1720,7 @@ textarea {
   display: block;
 }
 
-/* 상세 큰 이미지 */
+/* 상세 큰 이미지 (본문 상단) */
 .detail-image {
   width: 100%;
   max-height: 320px;
@@ -1695,15 +1731,17 @@ textarea {
 }
 
 /* ---------------------------------------------------
-   5. 경기 상세 페이지
+   5. 경기 상세 페이지 (상세 기록 + 승부예측 + 댓글)
 --------------------------------------------------- */
-/* 경기 상세 상단 "경기 일정으로" 버튼 */
+
+/* 상단 "경기 일정으로" 버튼 묶음 */
 .match-header-top {
   display: flex;
   justify-content: flex-start;
   margin-bottom: 10px;
 }
 
+/* 경기 일정으로 돌아가기 버튼 */
 .match-back-btn {
   display: inline-flex;
   align-items: center;
@@ -1711,26 +1749,27 @@ textarea {
   padding: 6px 12px;
   font-size: 0.8rem;
   border-radius: 999px;
-  border: 1px solid #374151;
-  background: #020617;          /* 아주 진한 남색 배경 */
-  color: var(--text-muted);     /* 연한 회색 글자 */
+  border: 1px solid #0066ff;
+  background: #006091; 
+  color: #f9fafb;;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .match-back-btn:hover {
-  background: #111827;
+  background: #00277a;
   color: #fff;
   border-color: #4b5563;
   transform: translateY(-1px);
 }
 
-/* 버튼 안에 화살표 같은 아이콘(◀) 썼을 때 살짝 여백 */
+/* 화살표 아이콘 여백 */
 .match-back-btn span:first-child {
   font-size: 0.85rem;
   margin-right: 2px;
 }
 
+/* 전체 경기 상세 페이지 레이아웃 */
 .match-page {
   max-width: 1200px;
   margin: 20px auto 40px;
@@ -1740,19 +1779,20 @@ textarea {
   gap: 18px;
 }
 
-/* 상단 스코어보드 */
+/* 상단 스코어보드 영역 */
 .match-header {
   grid-column: 1 / -1;
 }
 
 .match-scoreboard {
-  background: #1d4ed8;
+  background: #0066ff;
   border-radius: 14px;
   padding: 16px 24px 18px;
   color: #f9fafb;
   box-shadow: var(--shadow-soft);
 }
 
+/* 스코어보드 상단: 리그명 + 상태 */
 .match-score-top {
   display: flex;
   justify-content: space-between;
@@ -1769,6 +1809,7 @@ textarea {
   font-weight: 700;
 }
 
+/* 스코어보드 메인 영역: 홈/원정 + 점수 */
 .match-score-main {
   display: flex;
   align-items: center;
@@ -1818,7 +1859,7 @@ textarea {
   opacity: 0.9;
 }
 
-/* 좌측 메인 (기록 탭) */
+/* 좌측 메인 카드 (기록/요약 탭) */
 .match-main {
   background: #18181b;
   border-radius: 12px;
@@ -1826,6 +1867,7 @@ textarea {
   box-shadow: var(--shadow-soft);
 }
 
+/* 기록/요약 탭 버튼 */
 .match-tabs {
   display: flex;
   gap: 8px;
@@ -1848,6 +1890,7 @@ textarea {
   border-bottom-color: var(--accent-soft);
 }
 
+/* 탭 컨텐츠 공통 */
 .match-tab-content {
   margin-top: 8px;
 }
@@ -1857,6 +1900,7 @@ textarea {
   margin-bottom: 8px;
 }
 
+/* 팀 기록 테이블 */
 .record-table {
   width: 100%;
   border-collapse: collapse;
@@ -1878,7 +1922,7 @@ textarea {
   text-align: left;
 }
 
-/* 우측 사이드 */
+/* 우측 사이드 (승부예측 + 댓글) */
 .match-side {
   display: flex;
   flex-direction: column;
@@ -1906,7 +1950,7 @@ textarea {
   margin-top: 6px;
 }
 
-/* 승부 예측 */
+/* 승부 예측 바 전체 */
 .predict-bar {
   margin-bottom: 10px;
   display: flex;
@@ -1920,6 +1964,7 @@ textarea {
   font-size: 0.8rem;
 }
 
+/* 백그라운드 트랙 */
 .predict-track {
   height: 6px;
   border-radius: 999px;
@@ -1927,12 +1972,14 @@ textarea {
   overflow: hidden;
 }
 
+/* 실제 채워지는 부분 */
 .predict-fill {
   height: 100%;
   border-radius: 999px;
   background: var(--accent-soft);
 }
 
+/* 승부 예측 버튼 영역 */
 .predict-actions {
   display: flex;
   gap: 8px;
@@ -1946,7 +1993,7 @@ textarea {
   padding: 6px 8px;
   font-size: 0.8rem;
   cursor: pointer;
-  background: #1f2937;
+  background: #0066ff;
   color: #e5e7eb;
 }
 .predict-actions button:hover {
@@ -1954,7 +2001,7 @@ textarea {
   color: #020617;
 }
 
-/* 댓글 */
+/* 경기 상세 우측 댓글 폼 */
 .comment-form {
   display: flex;
   flex-direction: column;
@@ -1986,6 +2033,7 @@ textarea {
   font-weight: 600;
 }
 
+/* 경기 상세 댓글 리스트 – 이름은 같지만 스타일 재정의 */
 .comment-list {
   list-style: none;
   display: flex;
@@ -2017,6 +2065,7 @@ textarea {
   color: var(--text-muted);
 }
 
+/* 경기 상세 반응형 */
 @media (max-width: 960px) {
   .match-page {
     grid-template-columns: 1fr;
@@ -2028,9 +2077,10 @@ textarea {
 }
 
 /* ============================
-   메인 : NBA / EPL / E-스포츠 탭
-   (선수찾기 / 순위)
+   메인 : NBA / EPL / E-스포츠 탭 (선수찾기 / 순위)
 ============================ */
+
+/* 상단 모드 탭(카테고리별 상단 설명/탭) */
 .category-header-row {
   display: flex;
   flex-direction: column;
@@ -2064,11 +2114,12 @@ textarea {
   font-weight: 600;
 }
 
+/* 각 모드 패널 컨테이너 */
 .category-panel {
   margin-top: 8px;
 }
 
-/* 메인 순위 테이블 */
+/* 메인 순위 테이블 래퍼 */
 .league-standing-wrap {
   background: #0b1120;
   border-radius: 16px;
@@ -2076,6 +2127,7 @@ textarea {
   box-shadow: var(--shadow-soft);
 }
 
+/* 순위 테이블 공통 */
 .league-standing-table {
   width: 100%;
   border-collapse: collapse;
@@ -2107,6 +2159,7 @@ textarea {
   color: var(--text-muted);
 }
 
+/* 순위 테이블 반응형 조정 */
 @media (max-width: 700px) {
   .category-header-row {
     flex-direction: column;
@@ -2118,6 +2171,8 @@ textarea {
     font-size: 0.78rem;
   }
 }
+
+/* 그룹(예: E-스포츠 LEGEND/RISE 등) 간 간격 */
 .league-group-block + .league-group-block {
   margin-top: 24px;
 }
@@ -2128,9 +2183,10 @@ textarea {
   margin-bottom: 6px;
   padding-left: 2px;
 }
-/* E-스포츠 LEGEND / RISE 그룹 – 열 간격 통일 */
+
+/* E-스포츠 그룹 테이블: 열 너비 통일 설정 */
 .league-group-block .league-standing-table {
-  table-layout: fixed;  /* 각 열을 지정한 width대로 고정 */
+  table-layout: fixed;  /* 지정된 width대로 고정 */
 }
 
 /* 1열: 순위 */
@@ -2192,18 +2248,20 @@ textarea {
 .league-group-block .league-standing-table td:nth-child(10) {
   width: 12%;
 }
+
 /* ===== 선수 상세 인포박스 (player.html) ===== */
 
 .player-info-card {
-  background: #0e004e;
+  background: #161616;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: var(--shadow-soft);
   color: #ffffff;
 }
 
+/* 상단 헤더(리그/포지션/이름) */
 .player-info-header {
-  background: #01053a; /* 빨간 상단 영역 */
+  background: #0066ff;
   padding: 12px 14px;
   color: #ffffff;
 }
@@ -2215,6 +2273,7 @@ textarea {
   font-size: 0.8rem;
 }
 
+/* 포지션/역할 태그 */
 .player-info-tag {
   padding: 2px 8px;
   border-radius: 999px;
@@ -2226,17 +2285,18 @@ textarea {
   opacity: 0.9;
 }
 
+/* 선수 이름 */
 .player-info-name {
   margin-top: 6px;
   font-size: 1.4rem;
   font-weight: 700;
 }
 
-/* 아래 테이블 영역 */
+/* 아래 정보 테이블 (기본정보/경력 등) */
 .player-info-table {
   width: 120%;
   border-collapse: collapse;
-  background: #1f1e20;
+  background: #1f1f1f;
 }
 
 .player-info-table th,
@@ -2249,7 +2309,7 @@ textarea {
 
 .player-info-table th {
   width: 80px;
-  background: #07032e;
+  background: #0066ff;
   color: #ffffff;
   text-align: center;
   white-space: nowrap;
@@ -2260,25 +2320,29 @@ textarea {
 .player-info-table tr:last-child td {
   border-bottom: none;
 }
+
 /* ===== player.html 전용 이미지 크기 조정 ===== */
 .player-page .product-main-image img {
-  max-height: 320px;  /* 기존 520px → 320px 정도로 */
+  max-height: 320px;  /* 기존 520px → 320px로 축소 */
 }
 
-/* (선택) 왼쪽 영역 폭도 조금 줄이고 싶으면 */
+/* player 상세에서 좌/우 비율 조정 */
 .player-page .product-detail-layout {
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
 }
 
-/* (선택) 썸네일 영역도 살짝 줄이기 */
+/* player 상세에서 썸네일 폭 조정 */
 .player-page .product-gallery {
   grid-template-columns: 80px minmax(0, 1fr);
 }
+
+/* 선수 설명은 줄바꿈(\n)을 유지하도록 */
 #playerDesc {
   white-space: pre-line;
 }
+
 /* ---------------------------------------------------
-   6. 반응형
+   6. 반응형(공통)
 --------------------------------------------------- */
 
 @media (max-width: 1000px) {
@@ -2320,6 +2384,7 @@ textarea {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 }
+
 /* ---------------------------------------------------
    7. 장바구니 페이지
 --------------------------------------------------- */
@@ -2342,6 +2407,7 @@ textarea {
   margin: 0;
 }
 
+/* 장바구니 레이아웃: 왼쪽 목록 / 오른쪽 합계 */
 .cart-layout {
   display: grid;
   grid-template-columns: minmax(0, 2.2fr) minmax(260px, 1fr);
@@ -2349,6 +2415,7 @@ textarea {
   align-items: flex-start;
 }
 
+/* 왼쪽/오른쪽 카드 공통 박스 */
 .cart-list-card,
 .cart-summary-card {
   background: #18181b;
@@ -2357,7 +2424,7 @@ textarea {
   box-shadow: var(--shadow-soft);
 }
 
-/* 왼쪽: 목록 */
+/* 왼쪽 목록 헤더 (전체선택 등) */
 .cart-list-header {
   display: flex;
   justify-content: space-between;
@@ -2372,6 +2439,7 @@ textarea {
   gap: 10px;
 }
 
+/* 장바구니 비어 있을 때 */
 .cart-empty {
   padding: 30px 10px;
   text-align: center;
@@ -2379,6 +2447,7 @@ textarea {
   color: var(--text-muted);
 }
 
+/* 장바구니 아이템 한 줄 */
 .cart-item {
   display: grid;
   grid-template-columns: 28px 80px minmax(0, 1.5fr) 110px 110px 70px;
@@ -2386,10 +2455,11 @@ textarea {
   align-items: center;
   padding: 10px 8px;
   border-radius: 10px;
-  background: #111827;
+  background: #222325;
   font-size: 0.85rem;
 }
 
+/* 썸네일 이미지 */
 .cart-item-thumb img {
   width: 70px;
   height: 70px;
@@ -2407,6 +2477,7 @@ textarea {
   color: var(--text-muted);
 }
 
+/* 수량 조절 영역 */
 .cart-item-qty {
   display: inline-flex;
   align-items: center;
@@ -2431,6 +2502,7 @@ textarea {
   font-weight: 600;
 }
 
+/* 개별 아이템 삭제 버튼 */
 .cart-item-remove {
   border: none;
   background: transparent;
@@ -2442,7 +2514,7 @@ textarea {
   color: #f87171;
 }
 
-/* 오른쪽: 합계 */
+/* 오른쪽 합계 영역 */
 .cart-summary-row {
   display: flex;
   justify-content: space-between;
@@ -2461,6 +2533,7 @@ textarea {
   font-weight: 700;
 }
 
+/* 주문하기 버튼 */
 .cart-order-btn {
   width: 100%;
   margin-top: 16px;
@@ -2476,6 +2549,28 @@ textarea {
 .cart-order-btn:hover {
   box-shadow: 0 8px 20px rgba(0,0,0,0.7);
 }
+
+/* 선택 상품 삭제 버튼 */
+.cart-delete-selected-btn {
+  width: 100%;
+  margin-top: 8px;
+  border-radius: 10px;
+  padding: 10px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  border: 1px solid #4b5563;
+  background: #28292c;
+  color: #e5e7eb;
+}
+
+.cart-delete-selected-btn:hover {
+  background: #1f2937;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+}
+
+/* 장바구니 반응형 */
 @media (max-width: 900px) {
   .cart-layout {
     grid-template-columns: 1fr;
@@ -2490,8 +2585,9 @@ textarea {
     justify-self: flex-end;
   }
 }
+
 /* ==============================
-   로그인 모달
+   로그인 모달(공통)
 ============================== */
 
 #loginModalOverlay {
@@ -2504,45 +2600,47 @@ textarea {
   z-index: 99999;
 }
 
+/* 로그인 모달 박스 */
 .login-modal {
-  width: 440px;                 /* 기존보다 넓게 */
+  width: 440px;
   max-width: 95%;
   background: #020617;
-  border-radius: 18px;          /* 살짝 더 둥글게 */
-  padding: 28px 30px 22px;      /* 안쪽 여백도 넉넉하게 */
+  border-radius: 18px;
+  padding: 28px 30px 22px;
   box-shadow: 0 22px 50px rgba(0,0,0,0.8);
   color: #e5e7eb;
 }
 
 .login-modal-title {
-  font-size: 1.25rem;           /* 제목 조금 크게 */
+  font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 10px;
 }
 
 .login-modal-desc {
-  font-size: 0.95rem;           /* 설명도 약간 키우기 */
+  font-size: 0.95rem;
   color: #9ca3af;
   margin-bottom: 18px;
 }
 
+/* 로그인 인풋 */
 .login-modal-input {
   width: 100%;
   border-radius: 10px;
   border: 1px solid #4b5563;
   background: #020617;
   color: #e5e7eb;
-  padding: 9px 12px;            /* 입력창 높이 살짝 키우기 */
+  padding: 9px 12px;
   font-size: 0.95rem;
   margin-bottom: 16px;
 }
-
 
 .login-modal-input:focus {
   outline: none;
   border-color: var(--accent-soft);
 }
 
+/* 모달 하단 버튼 그룹 */
 .login-modal-buttons {
   display: flex;
   justify-content: flex-end;
@@ -2550,7 +2648,7 @@ textarea {
   margin-top: 6px;
 }
 
-/* 취소 / 로그인 / 회원가입 버튼 공통 스타일 */
+/* 취소 / 로그인 / 회원가입 공통 버튼 스타일 */
 .login-btn-cancel,
 .login-btn-submit,
 .login-btn-signup {
@@ -2561,15 +2659,16 @@ textarea {
   border: none;
 }
 
+/* 취소 버튼 */
 .login-btn-cancel {
   background: #111827;
   color: #e5e7eb;
 }
-
 .login-btn-cancel:hover {
   background: #020617;
 }
 
+/* 로그인 / 회원가입 버튼 */
 .login-btn-submit,
 .login-btn-signup {
   background: var(--accent-soft);
@@ -2581,4 +2680,3 @@ textarea {
 .login-btn-signup:hover {
   box-shadow: 0 8px 20px rgba(0,0,0,0.6);
 }
-
