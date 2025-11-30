@@ -1,4 +1,4 @@
-<!DOCTYPE html> <!--이동우 --><!-- HTML5 문서 선언 -->
+<!DOCTYPE html> <!--이동우 -->
 <html lang="ko"> <!-- 문서 언어를 한국어로 설정 -->
 <head>
 <meta charset="UTF-8"> <!-- UTF-8 문자 인코딩 -->
@@ -7,16 +7,16 @@
 <!-- 외부 CSS 불러오기 -->
 <link rel="stylesheet" href="style.css">
 
-<!-- 데이터(상품 목록) 불러오기 -->
+<!-- 데이터(상품 목록) 불러오기: shopData, playerData 등 포함 -->
 <script src="data.js"></script>
 
-<!-- 검색 기능 스크립트 -->
+<!-- 검색 기능 스크립트 (상단 통합 검색) -->
 <script src="search.js" defer></script>
 
-<!-- 로그인 / 회원 기능 스크립트 -->
+<!-- 로그인 / 회원 기능 스크립트 (헤더 우측 유저 영역) -->
 <script src="auth.js" defer></script>
 
-<!-- 장바구니 기능 스크립트 -->
+<!-- 장바구니 기능 스크립트 (장바구니 담기/조회 등) -->
 <script src="cart.js" defer></script>
 
 <!-- 좌측 카테고리 히스토리(뒤로가기/앞으로가기 동기화 기능) -->
@@ -47,7 +47,7 @@
   </div>
 </div>
 
-<!-- 검색 결과 자동 완성 박스 -->
+<!-- 검색 결과 자동 완성 박스 (search.js에서 컨트롤) -->
 <div id="searchResultBox" class="search-result-box"></div>
 
 <!-- ============================
@@ -57,8 +57,10 @@
 
   <!-- 상단 배너 -->
   <div class="shop-banner"> <!-- 큰 홍보 배너 -->
-    <img src="https://images.unsplash.com/photo-1461897104016-0b3b00cc81ee?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="쇼핑 배너"> <!-- 배너 이미지 -->
-    <div class="shop-banner-text"> <!-- 배너에 덮이는 텍스트 -->
+    <!-- 배너 배경 이미지 -->
+    <img src="https://images.unsplash.com/photo-1461897104016-0b3b00cc81ee?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="쇼핑 배너">
+    <!-- 배너 위에 겹치는 텍스트 -->
+    <div class="shop-banner-text">
       <div class="shop-banner-sub">스포츠 팬들을 위한 특별 기획전</div>
       <div class="shop-banner-main">PREMIUM SPORTS SHOP</div>
       <div class="shop-banner-desc">농구 · 축구 · E-스포츠 용품을 한번에 만나보세요</div>
@@ -72,6 +74,7 @@
     <aside class="shop-sidebar"> <!-- 왼쪽 카테고리 영역 -->
       <div class="shop-sidebar-title">카테고리</div>
       <ul class="shop-category-list"> <!-- 카테고리 리스트 -->
+        <!-- data-cat 값으로 카테고리 식별, 클릭 시 changeShopCategory 호출 -->
         <li><button class="shop-cat-btn active" data-cat="ALL" onclick="changeShopCategory('ALL', this)">전체 보기</button></li>
         <li><button class="shop-cat-btn" data-cat="농구" onclick="changeShopCategory('농구', this)">농구</button></li>
         <li><button class="shop-cat-btn" data-cat="축구" onclick="changeShopCategory('축구', this)">축구</button></li>
@@ -86,11 +89,13 @@
         <h1>쇼핑</h1>
         <div class="shop-main-info">
           총 <span id="shopCount">0</span>개 상품 <!-- 필터링된 상품 수 표시 -->
+          <!-- 장바구니 페이지로 이동 -->
           <button type="button" class="shop-cart-link" onclick="goCartPage()">장바구니 보기</button>
         </div>
       </div>
 
-      <div id="shopList" class="products-grid"></div> <!-- 상품들이 채워질 공간 -->
+      <!-- 실제 상품 카드들이 채워질 영역 -->
+      <div id="shopList" class="products-grid"></div>
     </main>
   </div>
 </div>
@@ -99,62 +104,104 @@
      JS
 ============================= -->
 <script>
+/**
+ * 현재 선택된 쇼핑 카테고리 값
+ * - "ALL" / "농구" / "축구" / "E-스포츠" / "용품"
+ * - 좌측 카테고리 버튼 및 상품 필터링에 사용
+ */
 let currentShopCategory = "ALL";  // 현재 선택된 카테고리 저장 변수
 
-// 상품 이름에서 카테고리를 자동 판별하는 함수
+/**
+ * 상품 객체를 보고 대략적인 카테고리를 자동 판별하는 함수
+ * - item.name 문자열에 포함된 단어로 간단하게 분류
+ * - 실제 데이터 구조에 카테고리가 따로 없다 보니 이름 기반으로 판단
+ *
+ * @param {Object} item - shopData 안의 상품 하나
+ * @returns {string}    - "농구" / "축구" / "E-스포츠" / "용품" 중 하나
+ */
 function getShopCategory(item) {
+  // 상품 이름이 없을 수 있으니 기본값 처리
   const name = item.name || "";
+
+  // 이름에 "농구"가 포함되면 농구 카테고리
   if (name.includes("농구")) return "농구";
+
+  // 이름에 "축구"가 포함되면 축구 카테고리
   if (name.includes("축구")) return "축구";
+
+  // "게이밍" 또는 "gaming" 이 들어가면 E-스포츠 용품으로 분류
   if (name.includes("게이밍") || name.toLowerCase().includes("gaming")) return "E-스포츠";
-  return "용품"; // 어떤 조건에도 안맞으면 '용품'
+
+  // 위 조건에 해당하지 않으면 기타 용품으로 처리
+  return "용품"; // 어떤 조건에도 안 맞으면 '용품'
 }
 
-// 카테고리 변경 + 브라우저 히스토리 반영
+/**
+ * 카테고리 변경 처리 + 브라우저 히스토리 연동
+ *
+ * @param {string} cat   - 변경할 카테고리 값 (예: "ALL", "농구"...)
+ * @param {HTMLElement|null} btn - 사용자가 클릭한 버튼 요소 (active 표시용)
+ * @param {boolean} push  - true면 history.pushState, false면 replaceState
+ */
 function changeShopCategory(cat, btn, push = true) {
-  currentShopCategory = cat; // 현재 카테고리 저장
+  // 현재 선택 카테고리 상태 갱신
+  currentShopCategory = cat;
 
-  // 왼쪽 버튼 active 업데이트
+  // 왼쪽 카테고리 버튼들의 active 클래스 업데이트
   document.querySelectorAll(".shop-cat-btn").forEach(b => {
-    const btnCat = b.dataset.cat;
-    b.classList.toggle("active", btnCat === cat);
+    const btnCat = b.dataset.cat;              // 버튼에 지정된 data-cat 값
+    b.classList.toggle("active", btnCat === cat); // 현재 선택한 cat과 같으면 active
   });
 
+  // 직접 클릭한 버튼이 넘어온 경우, 다시 한 번 active 추가 (안전용)
   if (btn) btn.classList.add("active");
 
-  renderShop(); // UI 렌더링 실행
+  // 카테고리 변경에 따라 상품 목록 다시 렌더링
+  renderShop();
 
-  // URL 뒤에 ?scat=카테고리를 붙여 브라우저 히스토리 기록
+  // URL 뒤에 ?scat=카테고리를 붙여 브라우저 히스토리 기록 (뒤로가기/앞으로가기 대응)
+  // tabs-history.js 가 로딩된 경우에만 작동
   if (window.updateTabHistory && push) {
     updateTabHistory("scat", cat, true);
   }
 }
 
-// 상품 리스트를 화면에 출력하는 함수
-function renderShop(){
+/**
+ * 현재 선택된 카테고리를 기준으로 상품 리스트를 화면에 그리는 함수
+ * - shopData 전체에서 getShopCategory로 분류 후
+ *   currentShopCategory와 일치하는 상품만 필터링해서 출력
+ */
+function renderShop() {
+  // 상품 카드가 들어갈 컨테이너
   const box = document.getElementById("shopList");
+  // 상단 "총 N개 상품" 숫자 표시 엘리먼트
   const countEl = document.getElementById("shopCount");
-  if (!box) return;
+  if (!box) return;  // 안전 처리
 
-  box.innerHTML = ""; // 기존 상품 지우기
+  // 이전에 렌더링된 상품 카드 모두 제거
+  box.innerHTML = "";
 
-  // 현재 카테고리 기준 상품 필터링
+  // 현재 카테고리 기준으로 상품 필터링
   const filtered = shopData.filter(item => {
+    // 이름 기반으로 실제 카테고리 문자열 얻기
     const cat = getShopCategory(item);
+    // ALL 이면 모두 허용, 아니면 해당 카테고리와 일치하는 것만
     return currentShopCategory === "ALL" || cat === currentShopCategory;
   });
 
-  // 상품 수 표시
+  // 필터링된 상품 개수 상단에 표시
   if (countEl) countEl.textContent = filtered.length;
 
-  // 상품이 없으면 메시지 출력
+  // 현재 카테고리에 해당하는 상품이 하나도 없을 때
   if (filtered.length === 0) {
     box.innerHTML = `<div class="empty-post">해당 카테고리에 상품이 없습니다.</div>`;
     return;
   }
 
-  // 상품 HTML 생성
+  // 필터링된 각 상품에 대해 카드 HTML 생성
   filtered.forEach(item => {
+    // product.html?name=상품명 으로 이동하도록 onclick 설정
+    // (상품 카드 전체를 클릭 영역으로 사용)
     box.innerHTML += `
       <div class="product" onclick='openProductDetail("${item.name}")'>
         <img src="${item.img}"> <!-- 상품 이미지 -->
@@ -165,25 +212,40 @@ function renderShop(){
   });
 }
 
-// 상품 클릭 시 상품 상세 페이지로 이동
+/**
+ * 상품 카드 클릭 시, 개별 상품 상세 페이지로 이동
+ *
+ * @param {string} name - 상품 이름 (쿼리 파라미터로 전달)
+ */
 function openProductDetail(name) {
+  // 상품 이름을 URL 인코딩하여 쿼리 문자열로 붙임
   const url = `product.html?name=${encodeURIComponent(name)}`;
+  // 해당 상품 상세 페이지로 이동
   location.href = url;
 }
 
-// 브라우저 히스토리 초기 세팅
+/**
+ * 페이지 로드 시, 혹은 최초 한 번만 수행되는 카테고리 히스토리 초기화
+ * - tabs-history.js 가 제공하는 setupTabHistory를 사용해
+ *   ?scat=값 을 기준으로 카테고리 상태를 복원
+ */
 if (window.setupTabHistory) {
+  // key: "scat" / 기본값: "ALL"
   setupTabHistory("scat", "ALL", (cat, push) => {
+    // URL 혹은 뒤로가기에서 불린 경우에도 동일하게 changeShopCategory 호출
     const btn = document.querySelector(`.shop-cat-btn[data-cat="${cat}"]`);
     changeShopCategory(cat, btn || null, push);
   });
 } else {
-  // 히스토리가 없으면 기본 ALL로 설정
+  // tabs-history.js 가 없을 때는 단순히 기본 ALL 카테고리로 진입
   const btn = document.querySelector('.shop-cat-btn[data-cat="ALL"]');
   changeShopCategory("ALL", btn || null, false);
 }
 
-// 장바구니 페이지 이동
+/**
+ * 장바구니 페이지로 이동하는 함수
+ * - 상단 "장바구니 보기" 버튼에서 사용
+ */
 function goCartPage() {
   location.href = "cart.html";
 }
