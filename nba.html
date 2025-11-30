@@ -1,13 +1,25 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!--김수현-->
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <title>ENS - NBA</title>
+
+  <!-- 전체 공통 스타일 -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- 선수/팀/경기/상품 등의 데이터 (playerData, standingsData 등) -->
   <script src="data.js"></script>
+
+  <!-- 상단 통합 검색 기능 스크립트 -->
   <script src="search.js" defer></script>
+
+  <!-- 로그인/로그아웃, 유저 정보 표시 스크립트 -->
   <script src="auth.js" defer></script>
+
+  <!-- 장바구니 기능 (쇼핑 공통) -->
   <script src="cart.js" defer></script>
+
+  <!-- 탭/필터 상태를 URL 히스토리와 동기화하는 유틸 -->
   <script src="tabs-history.js"></script>
 
 </head>
@@ -15,13 +27,19 @@
   <!-- ===== 공통 헤더 (index.html에서 복사) ===== -->
   <div class="header">
     <div class="top-row">
+      <!-- 로고: 클릭 시 메인 페이지로 이동 -->
       <a href="index.html" class="logo">ENS</a>
+
+      <!-- 상단 통합 검색창 -->
       <div class="search-box">
         <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
       </div>
+
+      <!-- 우측 유저 정보/로그인 상태 영역 (auth.js에서 채움) -->
       <div class="header-user" id="userDisplay"></div>
     </div>
 
+    <!-- 상단 카테고리 네비게이션 버튼들 -->
     <div class="categories">
       <button onclick="location.href='index.html'">홈</button>
       <button onclick="location.href='nba.html'">NBA</button>
@@ -33,26 +51,33 @@
     </div>
   </div>
 
-  <!-- 검색결과 박스 -->
+  <!-- 검색결과 박스 (search.js에서 내용 채우고 show/hide) -->
   <div id="searchResultBox" class="search-result-box"></div>
 
-  <!-- 메인 콘텐츠 (NBA 카테고리 전용) -->
+  <!-- 메인 콘텐츠 (이 페이지에서는 NBA 카테고리 전용 콘텐츠) -->
   <div id="mainContent" class="main-content-area"></div>
 
   <script>
-    // 이 페이지 전용 카테고리 상수
+    // 이 페이지 전용 카테고리 상수 (NBA 페이지라는 의미)
     const CATEGORY = "NBA";
 
     /* ====== index.html에서 쓰던 함수들 그대로 가져오기 ====== */
 
-    // 카테고리 상단(제목 + 탭) 뼈대
+    /**
+     * 카테고리 상단(제목 + 탭 버튼들) 뼈대 렌더링
+     * - "NBA" 제목과
+     * - "선수찾기" / "순위" 두 개의 모드 탭을 만들어줌
+     */
     function renderCategoryHeader(cat) {
       const box = document.getElementById("mainContent");
       if (!box) return;
 
       box.innerHTML = `
         <div class="category-header-row">
+          <!-- 카테고리 제목 (예: NBA) -->
           <div class="section-title">${cat}</div>
+
+          <!-- 모드 탭: 선수찾기 / 순위 -->
           <div class="category-mode-tabs">
             <button class="category-mode-btn active"
                     data-mode="players"
@@ -62,18 +87,28 @@
                     onclick="changeCategoryMode('standings')">순위</button>
           </div>
         </div>
+
+        <!-- 탭 1: 선수찾기 콘텐츠 영역 -->
         <div id="categoryPlayers" class="category-panel"></div>
+
+        <!-- 탭 2: 순위 콘텐츠 영역 (기본은 hidden) -->
         <div id="categoryStandings" class="category-panel hidden"></div>
       `;
     }
 
-    // 탭 1 : 선수찾기
+    /**
+     * 탭 1: 선수찾기
+     * - playerData[CATEGORY]에서 NBA 선수 목록을 가져와
+     *   가로 스크롤 카드 형태로 렌더링
+     */
     function renderCategoryPlayers(cat) {
         const panel = document.getElementById("categoryPlayers");
         if (!panel) return;
 
+        // playerData가 로드되어 있고, 해당 카테고리 데이터가 있으면 사용
         const list = (typeof playerData !== "undefined" && playerData[cat]) ? playerData[cat] : [];
 
+        // 선수 데이터가 하나도 없을 때
         if (!list.length) {
             panel.innerHTML = `
             <div style="padding:30px 10px; opacity:.7;">
@@ -82,8 +117,10 @@
             return;
         }
 
+        // 선수 카드 리스트 HTML 생성
         let html = `<div class="products-scroll">`;
         list.forEach(p => {
+            // player.html로 이동할 때 cat/name을 쿼리로 전달
             const detailUrl = `player.html?cat=${encodeURIComponent(cat)}&name=${encodeURIComponent(p.name)}`;
 
             html += `
@@ -96,21 +133,29 @@
 
         panel.innerHTML = html;
     }
-        // 탭 2 : 순위 (동/서부 컨퍼런스)
+
+    // 탭 2 : 순위 (동/서부 컨퍼런스)
+    // 현재 선택된 컨퍼런스 상태 (동부: EAST, 서부: WEST)
     let currentConference = "EAST";  // 기본: 동부
 
+    /**
+     * 탭 2: 순위
+     * - standingsData["NBA"]에서 컨퍼런스(동부/서부)별 데이터를 가져와
+     *   현재 선택된 컨퍼런스(currentConference)에 해당하는 팀들만 테이블로 렌더링
+     */
     function renderCategoryStandings(cat) {
       const panel = document.getElementById("categoryStandings");
       if (!panel) return;
 
-      // 전체 NBA 순위 데이터
+      // 전체 NBA 순위 데이터 (동/서부 모두 포함)
       const all = (typeof standingsData !== "undefined" && standingsData[cat])
         ? standingsData[cat]
         : [];
 
-      // 현재 선택된 컨퍼런스만 필터링
+      // 현재 선택된 컨퍼런스(EAST/WEST)에 해당하는 팀만 필터링
       const league = all.filter(t => t.conference === currentConference);
 
+      // 해당 컨퍼런스에 데이터가 없을 때
       if (!league.length) {
         panel.innerHTML = `
           <div style="padding:30px 10px; opacity:.7;">
@@ -119,6 +164,7 @@
         return;
       }
 
+      // 각 팀을 테이블 row 형태로 변환
       const rows = league.map(t => `
         <tr>
           <td>${t.rank}</td>
@@ -136,7 +182,9 @@
         </tr>
       `).join("");
 
+      // 컨퍼런스 토글 버튼 + 순위 테이블 전체 HTML
       panel.innerHTML = `
+        <!-- 동/서부 컨퍼런스를 바꾸는 버튼들 -->
         <div class="category-mode-tabs" style="margin-bottom:10px;">
           <button
             class="category-mode-btn ${currentConference === "EAST" ? "active" : ""}"
@@ -150,6 +198,7 @@
           </button>
         </div>
 
+        <!-- 순위 테이블 -->
         <div class="league-standing-wrap">
           <table class="league-standing-table">
             <thead>
@@ -176,25 +225,47 @@
       `;
     }
 
+    /**
+     * 동부(EAST) / 서부(WEST) 컨퍼런스 변경 함수
+     * - currentConference 값을 변경하고
+     * - URL 히스토리에도 ?conf=EAST / ?conf=WEST 를 반영
+     * - 변경 후 순위 테이블을 다시 렌더링
+     *
+     * @param {string} conf - "EAST" 또는 "WEST"
+     * @param {boolean} push - true면 history.pushState, false면 replaceState
+     */
     function changeConference(conf, push = true) {
       currentConference = conf;
-      // URL / 히스토리 (?conf=EAST / ?conf=WEST)
+
+      // URL / 히스토리 (?conf=EAST / ?conf=WEST 로 관리)
       if (window.updateTabHistory && push) {
         updateTabHistory("conf", conf, true);
       }
+
+      // 현재 컨퍼런스 기준으로 순위 다시 렌더
       renderCategoryStandings(CATEGORY);
     }
 
-    // 탭 전환 + 히스토리 반영
+    /**
+     * "선수찾기" / "순위" 탭 전환 함수
+     * - 탭에 따라 보일 패널을 바꾸고
+     * - 선택된 탭 버튼에 active 클래스를 붙여줌
+     * - tabs-history.js를 사용하면 ?tab=players / ?tab=standings 로 URL에도 반영
+     *
+     * @param {string} mode - "players" 또는 "standings"
+     * @param {boolean} push - true면 history.pushState, false면 replaceState
+     */
     function changeCategoryMode(mode, push = true) {
-      const playersPanel = document.getElementById("categoryPlayers");
+      const playersPanel   = document.getElementById("categoryPlayers");
       const standingsPanel = document.getElementById("categoryStandings");
 
+      // 두 패널 중 현재 모드에 해당하는 것만 보이게 처리
       if (playersPanel && standingsPanel) {
         playersPanel.classList.toggle("hidden", mode !== "players");
         standingsPanel.classList.toggle("hidden", mode !== "standings");
       }
 
+      // data-mode 속성이 있는 카테고리 탭 버튼들(NBA 상단의 "선수찾기"/"순위")에 active 토글
       document
         .querySelectorAll(".category-mode-btn[data-mode]")
         .forEach(btn => {
@@ -202,35 +273,43 @@
           btn.classList.toggle("active", btnMode === mode);
         });
 
-      // 공통 유틸이 있을 때만 호출 (없어도 에러 안 나게)
+      // tabs-history.js 가 로드되어 있을 때만 URL 히스토리 반영
       if (push && window.updateTabHistory) {
-        // key: "tab" → URL: ?tab=players / ?tab=standings 이런 식
+        // key: "tab" → URL: ?tab=players / ?tab=standings 이런 식으로 저장
         updateTabHistory("tab", mode, true);
       }
     }
 
-
-      document.addEventListener("DOMContentLoaded", () => {
+    // 페이지 최초 로드 시 실행
+    document.addEventListener("DOMContentLoaded", () => {
+      // 상단 헤더(제목 + 탭) 렌더
       renderCategoryHeader(CATEGORY);
+
+      // 탭1: 선수 목록 렌더
       renderCategoryPlayers(CATEGORY);
+
+      // 탭2: 순위(동부 기본값) 렌더
       renderCategoryStandings(CATEGORY);
 
+      // 탭/필터 상태를 브라우저 히스토리와 연동
       if (window.setupTabHistory) {
+        // 1) "선수찾기 / 순위" 탭 히스토리
         // key "tab", 기본값 "players"
         setupTabHistory("tab", "players", (mode, push) => {
-          // popstate 에서도, URL에서 처음 들어올 때도 모두 여기로 옴
+          // popstate(뒤로가기/앞으로가기)에서도 이 콜백이 호출됨
           changeCategoryMode(mode, push);
         });
-        // 2) ✅ 동부 / 서부 컨퍼런스 히스토리
+
+        // 2) 동부 / 서부 컨퍼런스 히스토리
+        // key "conf", 기본값 "EAST"
         setupTabHistory("conf", "EAST", (conf, push) => {
           changeConference(conf, push);
         });
       } else {
-        // 혹시 tabs-history.js 를 안 썼을 때 대비
+        // tabs-history.js 를 사용할 수 없는 환경일 때: 기본값으로만 동작
         changeCategoryMode("players", false);
       }
     });
-      
   </script>
 </body>
 </html>
