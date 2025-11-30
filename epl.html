@@ -1,13 +1,19 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!--김수현-->
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <title>ENS - EPL</title>
+  <!-- 전체 공용 스타일 -->
   <link rel="stylesheet" href="style.css">
+  <!-- 선수/팀/경기/상품 데이터가 들어있는 js -->
   <script src="data.js"></script>
+  <!-- 통합 검색 스크립트 -->
   <script src="search.js" defer></script>
+  <!-- 로그인/로그아웃 관련 스크립트 -->
   <script src="auth.js" defer></script>
+  <!-- 장바구니 관련 스크립트 -->
   <script src="cart.js" defer></script>
+  <!-- 탭 상태를 URL 히스토리와 연동하는 스크립트 -->
   <script src="tabs-history.js"></script>
 
 </head>
@@ -15,13 +21,19 @@
   <!-- ===== 공통 헤더 (index.html에서 복사) ===== -->
   <div class="header">
     <div class="top-row">
+      <!-- 로고 : 항상 메인으로 이동 -->
       <a href="index.html" class="logo">ENS</a>
+
+      <!-- 상단 통합 검색창 -->
       <div class="search-box">
         <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
       </div>
+
+      <!-- 우측 로그인 상태 표기 영역 (auth.js에서 채워줌) -->
       <div class="header-user" id="userDisplay"></div>
     </div>
 
+    <!-- 상단 카테고리 네비게이션 버튼들 -->
     <div class="categories">
       <button onclick="location.href='index.html'">홈</button>
       <button onclick="location.href='nba.html'">NBA</button>
@@ -33,77 +45,112 @@
     </div>
   </div>
 
-  <!-- 검색결과 박스 -->
+  <!-- 통합 검색 결과 박스 (search.js에서 제어) -->
   <div id="searchResultBox" class="search-result-box"></div>
 
-  <!-- 메인 콘텐츠 (NBA 카테고리 전용) -->
+  <!-- 메인 콘텐츠 (EPL 카테고리 전용 영역) -->
   <div id="mainContent" class="main-content-area"></div>
 
   <script>
-    // 이 페이지 전용 카테고리 상수
-    const CATEGORY = "EPL";
+    // ==============================
+    // 이 페이지(EPL.html) 전용 상수
+    // ==============================
+    const CATEGORY = "EPL";   // 현재 페이지가 어떤 카테고리를 보여주는지 명시
 
-    // 카테고리 상단(제목 + 탭) 뼈대
+    // ====================================
+    // 카테고리 상단(제목 + 탭 버튼) 렌더링
+    // ====================================
     function renderCategoryHeader(cat) {
+      // EPL 콘텐츠를 채워 넣을 메인 컨테이너
       const box = document.getElementById("mainContent");
       if (!box) return;
 
+      // 상단: "EPL" 제목 + (선수찾기 / 순위) 탭 버튼
+      // 아래: 각 탭 콘텐츠 영역(categoryPlayers / categoryStandings)
       box.innerHTML = `
         <div class="category-header-row">
+          <!-- 카테고리 이름(EPL) -->
           <div class="section-title">${cat}</div>
+
+          <!-- 모드 전환 탭 버튼 -->
           <div class="category-mode-tabs">
+            <!-- 기본 활성화: 선수찾기 -->
             <button class="category-mode-btn active"
                     data-mode="players"
                     onclick="changeCategoryMode('players')">선수찾기</button>
+
+            <!-- 클릭 시 순위 탭으로 전환 -->
             <button class="category-mode-btn"
                     data-mode="standings"
                     onclick="changeCategoryMode('standings')">순위</button>
           </div>
         </div>
+
+        <!-- 탭 1 : 선수찾기 영역 (기본 표시) -->
         <div id="categoryPlayers" class="category-panel"></div>
+
+        <!-- 탭 2 : 순위 영역 (초기에는 hidden 클래스라 숨김) -->
         <div id="categoryStandings" class="category-panel hidden"></div>
       `;
     }
 
-    // 탭 1 : 선수찾기
+    // ===========================
+    // 탭 1 : 선수찾기 UI 렌더링
+    // ===========================
     function renderCategoryPlayers(cat) {
-        const panel = document.getElementById("categoryPlayers");
-        if (!panel) return;
+      // 선수 목록이 들어갈 패널
+      const panel = document.getElementById("categoryPlayers");
+      if (!panel) return;
 
-        const list = (typeof playerData !== "undefined" && playerData[cat]) ? playerData[cat] : [];
+      // data.js에 정의된 playerData에서 해당 카테고리(EPL) 선수 목록 가져오기
+      const list = (typeof playerData !== "undefined" && playerData[cat]) ? playerData[cat] : [];
 
-        if (!list.length) {
-            panel.innerHTML = `
-            <div style="padding:30px 10px; opacity:.7;">
-                등록된 선수가 없습니다.
-            </div>`;
-            return;
-        }
+      // 선수 데이터가 없을 때
+      if (!list.length) {
+        panel.innerHTML = `
+          <div style="padding:30px 10px; opacity:.7;">
+              등록된 선수가 없습니다.
+          </div>`;
+        return;
+      }
 
-        let html = `<div class="products-scroll">`;
-        list.forEach(p => {
-            const detailUrl = `player.html?cat=${encodeURIComponent(cat)}&name=${encodeURIComponent(p.name)}`;
+      // 선수 카드들을 가로 스크롤 영역(products-scroll)로 감싸서 렌더링
+      let html = `<div class="products-scroll">`;
 
-            html += `
-            <a class="product" href="${detailUrl}">
-                <img src="${p.img}" alt="${p.name}">
-                <div class="product-title">${p.name}</div>
-            </a>`;
-        });
-        html += "</div>";
+      list.forEach(p => {
+        // 선수 상세 페이지로 이동할 때 사용할 URL
+        // player.html?cat=EPL&name=선수명
+        const detailUrl = `player.html?cat=${encodeURIComponent(cat)}&name=${encodeURIComponent(p.name)}`;
 
-        panel.innerHTML = html;
+        // 각 선수 카드를 하나의 a 태그(링크)로 구성
+        html += `
+          <a class="product" href="${detailUrl}">
+            <img src="${p.img}" alt="${p.name}">
+            <div class="product-title">${p.name}</div>
+          </a>`;
+      });
+
+      html += "</div>";
+
+      // 최종 HTML을 패널에 삽입
+      panel.innerHTML = html;
     }
 
-    // 탭 2 : 순위
+    // ===========================
+    // 탭 2 : 순위 UI 렌더링
+    // ===========================
     function renderCategoryStandings(cat) {
+      // 순위 테이블이 들어갈 패널
       const panel = document.getElementById("categoryStandings");
       if (!panel) return;
 
+      // data.js에 standingsData가 정의되어 있고,
+      // 그 안에 현재 카테고리(EPL)에 해당하는 순위 배열이 있으면 가져온다.
       const league = (typeof standingsData !== "undefined" && standingsData[cat])
         ? standingsData[cat]
         : null;
 
+      // 순위 데이터가 없거나 비어 있는 경우 안내 메시지 표시
       if (!league || !league.length) {
         panel.innerHTML = `
           <div style="padding:30px 10px; opacity:.7;">
@@ -112,29 +159,49 @@
         return;
       }
 
+      // 순위 배열(league)을 순회하면서 각 팀을 테이블 행(<tr>)으로 변환
       const rows = league.map((t, idx) => {
+        // 경기 수:
+        // t.played가 있으면 그대로 사용, 없으면 승+무+패의 합으로 계산
         const played = t.played != null ? t.played : (t.win + t.draw + t.loss);
+
+        // 득점(gf), 실점(ga) 값이 없으면 기본값 0
         const gf = t.gf || 0;
         const ga = t.ga || 0;
+        // 득실차 = 득점 - 실점
         const gd = gf - ga;
+
+        // 승점:
+        // t.points가 있으면 그대로 사용, 없으면 (승*3 + 무) 규칙으로 계산
         const points = t.points != null ? t.points : (t.win * 3 + t.draw);
 
+        // 한 팀에 대한 순위 정보 한 줄(<tr>) 생성
         return `
           <tr>
+            <!-- 순위 : rank가 있으면 rank, 없으면 배열 index+1 -->
             <td>${t.rank != null ? t.rank : (idx + 1)}</td>
+
+            <!-- 팀 이름 : 왼쪽 정렬을 위해 league-standing-team 클래스 사용 -->
             <td class="league-standing-team">${t.team}</td>
+
+            <!-- 승점 / 경기 수 / 승 / 무 / 패 -->
             <td>${points}</td>
             <td>${played}</td>
             <td>${t.win}</td>
             <td>${t.draw}</td>
             <td>${t.loss}</td>
+
+            <!-- 득점 / 실점 / 득실 -->
             <td>${gf}</td>
             <td>${ga}</td>
             <td>${gd}</td>
+
+            <!-- 최근 5경기 결과(형식 예: W W D L W) -->
             <td class="league-standing-form">${t.form || ""}</td>
           </tr>`;
-      }).join("");
+      }).join("");   // map 결과 배열을 문자열 하나로 합침
 
+      // 패널 전체에 순위 테이블 마크업 주입
       panel.innerHTML = `
         <div class="league-standing-wrap">
           <table class="league-standing-table">
@@ -154,51 +221,71 @@
               </tr>
             </thead>
             <tbody>
-              ${rows}
+              ${rows}  <!-- 위에서 만든 팀별 <tr>들이 여기에 삽입 -->
             </tbody>
           </table>
         </div>
       `;
     }
 
-    // 탭 전환 + 히스토리 반영
+    // ===========================================
+    // 탭 전환(선수찾기 / 순위) + 히스토리 연동 함수
+    // ===========================================
     function changeCategoryMode(mode, push = true) {
+      // 두 패널(선수 / 순위) DOM 가져오기
       const playersPanel = document.getElementById("categoryPlayers");
       const standingsPanel = document.getElementById("categoryStandings");
 
+      // mode 값에 따라서 어떤 패널을 숨길지/보여줄지 결정
       if (playersPanel && standingsPanel) {
+        // mode가 "players"가 아닐 때만 숨김 → "standings"일 때 true
         playersPanel.classList.toggle("hidden", mode !== "players");
+        // mode가 "standings"가 아닐 때만 숨김
         standingsPanel.classList.toggle("hidden", mode !== "standings");
       }
 
+      // 탭 버튼들(active 클래스 토글)
       document
         .querySelectorAll(".category-mode-btn")
         .forEach(btn => {
-          const btnMode = btn.dataset.mode;
+          const btnMode = btn.dataset.mode; // 버튼이 담당하는 모드("players"/"standings")
           btn.classList.toggle("active", btnMode === mode);
         });
 
-      // 공통 유틸이 있을 때만 호출 (없어도 에러 안 나게)
+      // URL 쿼리 + 브라우저 뒤로가기 연동 (tabs-history.js 제공)
+      // push가 true이고, updateTabHistory 함수가 존재할 때만 호출
       if (push && window.updateTabHistory) {
-        // key: "tab" → URL: ?tab=players / ?tab=standings 이런 식
+        // key: "tab" → URL 예) ?tab=players / ?tab=standings
         updateTabHistory("tab", mode, true);
       }
     }
 
-
-        document.addEventListener("DOMContentLoaded", () => {
+    // ===========================================
+    // DOMContentLoaded 내에서 초기 렌더링
+    // (페이지 로드 시점에 한 번 실행)
+    // ===========================================
+    document.addEventListener("DOMContentLoaded", () => {
+      // 상단 카테고리 헤더(EPL + 탭 버튼) 출력
       renderCategoryHeader(CATEGORY);
+
+      // 선수찾기 탭 내용 렌더링
       renderCategoryPlayers(CATEGORY);
+
+      // 순위 탭 내용 렌더링 (초기에는 hidden 상태지만 데이터는 준비해 둠)
       renderCategoryStandings(CATEGORY);
 
+      // 탭 상태를 URL 히스토리와 연동 (뒤로가기/새로고침 대응)
       if (window.setupTabHistory) {
         // key "tab", 기본값 "players"
+        // - 처음 들어올 때 URL의 ?tab 값 읽기
+        // - 뒤로가기(popstate) 이벤트에도 대응
         setupTabHistory("tab", "players", (mode, push) => {
-          // popstate 에서도, URL에서 처음 들어올 때도 모두 여기로 옴
+          // mode: "players" 또는 "standings"
+          // push: history.pushState 여부
           changeCategoryMode(mode, push);
         });
       } else {
-        // 혹시 tabs-history.js 를 안 썼을 때 대비
+        // tabs-history.js를 사용하지 않을 경우 기본적으로 "선수찾기" 탭 활성화
         changeCategoryMode("players", false);
       }
     });
