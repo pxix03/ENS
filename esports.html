@@ -1,13 +1,19 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!--임제강-->
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <title>ENS - Esports</title>
+  <!-- 전체 공통 스타일 -->
   <link rel="stylesheet" href="style.css">
+  <!-- 선수/팀/경기/상품 등의 데이터가 들어있는 파일 -->
   <script src="data.js"></script>
+  <!-- 상단 검색창용 통합 검색 스크립트 -->
   <script src="search.js" defer></script>
+  <!-- 로그인/로그아웃, 유저 표시 관련 스크립트 -->
   <script src="auth.js" defer></script>
+  <!-- 장바구니 관련 스크립트 -->
   <script src="cart.js" defer></script>
+  <!-- 탭 상태를 URL 히스토리와 연동해주는 스크립트 -->
   <script src="tabs-history.js"></script>
 
 </head>
@@ -15,13 +21,19 @@
   <!-- ===== 공통 헤더 (index.html에서 복사) ===== -->
   <div class="header">
     <div class="top-row">
+      <!-- 로고 클릭 시 메인 페이지로 이동 -->
       <a href="index.html" class="logo">ENS</a>
+
+      <!-- 상단 통합 검색 입력창 -->
       <div class="search-box">
         <input id="globalSearch" type="text" placeholder="검색어를 입력하세요">
       </div>
+
+      <!-- 우측 로그인 상태 / 유저 이름 표시 영역 (auth.js에서 내용 채움) -->
       <div class="header-user" id="userDisplay"></div>
     </div>
 
+    <!-- 상단 카테고리 네비게이션 버튼들 -->
     <div class="categories">
       <button onclick="location.href='index.html'">홈</button>
       <button onclick="location.href='nba.html'">NBA</button>
@@ -33,45 +45,66 @@
     </div>
   </div>
 
-  <!-- 검색결과 박스 -->
+  <!-- 검색결과 박스 (search.js에서 동적으로 보여주고/숨김) -->
   <div id="searchResultBox" class="search-result-box"></div>
 
-  <!-- 메인 콘텐츠 (NBA 카테고리 전용) -->
+  <!-- 메인 콘텐츠 영역 (여기서는 E-스포츠 카테고리 전용으로 사용) -->
   <div id="mainContent" class="main-content-area"></div>
 
   <script>
-    // 이 페이지 전용 카테고리 상수
+    // ==============================
+    // 이 페이지(E-sports) 전용 카테고리 상수
+    // ==============================
     const CATEGORY = "E-스포츠";
 
-    // 카테고리 상단(제목 + 탭) 뼈대
+    // ====================================
+    // 카테고리 상단(제목 + 탭) 레이아웃 렌더링
+    // ====================================
     function renderCategoryHeader(cat) {
+      // 메인 콘텐츠 영역 DOM 가져오기
       const box = document.getElementById("mainContent");
       if (!box) return;
 
+      // 상단에 카테고리 제목(E-스포츠) + 모드 탭(선수찾기 / 순위) 생성
+      // 아래에는 각각의 탭 콘텐츠를 렌더링할 컨테이너 2개를 준비
       box.innerHTML = `
         <div class="category-header-row">
+          <!-- 카테고리 제목 -->
           <div class="section-title">${cat}</div>
+
+          <!-- 모드 전환 탭 버튼 -->
           <div class="category-mode-tabs">
+            <!-- 기본 활성화 상태: 선수찾기 탭 -->
             <button class="category-mode-btn active"
                     data-mode="players"
                     onclick="changeCategoryMode('players')">선수찾기</button>
+            <!-- 순위 탭 버튼 -->
             <button class="category-mode-btn"
                     data-mode="standings"
                     onclick="changeCategoryMode('standings')">순위</button>
           </div>
         </div>
+
+        <!-- 탭 1 : 선수찾기 패널 (기본 표시) -->
         <div id="categoryPlayers" class="category-panel"></div>
+
+        <!-- 탭 2 : 순위 패널 (초기에는 hidden 클래스라 보이지 않음) -->
         <div id="categoryStandings" class="category-panel hidden"></div>
       `;
     }
 
-    // 탭 1 : 선수찾기
-   function renderCategoryPlayers(cat) {
+    // ===========================
+    // 탭 1 : 선수찾기 렌더링
+    // ===========================
+    function renderCategoryPlayers(cat) {
+        // 선수 목록을 렌더링할 패널 가져오기
         const panel = document.getElementById("categoryPlayers");
         if (!panel) return;
 
+        // data.js의 playerData에서 해당 카테고리(E-스포츠) 선수 목록 가져오기
         const list = (typeof playerData !== "undefined" && playerData[cat]) ? playerData[cat] : [];
 
+        // 선수 데이터가 하나도 없을 때
         if (!list.length) {
             panel.innerHTML = `
             <div style="padding:30px 10px; opacity:.7;">
@@ -80,10 +113,14 @@
             return;
         }
 
+        // 선수 카드들을 가로 스크롤 가능한 영역(products-scroll)에 렌더링
         let html = `<div class="products-scroll">`;
         list.forEach(p => {
+            // 선수 상세 페이지로 이동할 때 사용할 URL
+            // 예: player.html?cat=E-스포츠&name=선수이름
             const detailUrl = `player.html?cat=${encodeURIComponent(cat)}&name=${encodeURIComponent(p.name)}`;
 
+            // 한 명의 선수를 카드 UI로 렌더링
             html += `
             <a class="product" href="${detailUrl}">
                 <img src="${p.img}" alt="${p.name}">
@@ -91,19 +128,24 @@
             </a>`;
         });
         html += "</div>";
-
+        // 완성된 HTML을 선수 패널에 삽입
         panel.innerHTML = html;
     }
 
-       // 탭 2 : 순위 (LEGEND / RISE 그룹)
+    // ======================================
+    // 탭 2 : 순위 (LEGEND / RISE 그룹) 렌더링
+    // ======================================
     function renderCategoryStandings(cat) {
+      // 순위표가 들어갈 패널
       const panel = document.getElementById("categoryStandings");
       if (!panel) return;
 
+      // standingsData에 현재 카테고리(E-스포츠)의 데이터가 있으면 가져오기
       const all = (typeof standingsData !== "undefined" && standingsData[cat])
         ? standingsData[cat]
         : [];
 
+      // 순위 데이터가 없으면 안내 메시지
       if (!all.length) {
         panel.innerHTML = `
           <div style="padding:30px 10px; opacity:.7;">
@@ -112,30 +154,45 @@
         return;
       }
 
+      // E-스포츠는 LEGEND / RISE 두 그룹으로 나누어져 있다고 가정
       const groups = ["LEGEND", "RISE"];
+
+      // 각 그룹에 표시할 한글 제목
       const groupTitle = {
         LEGEND: "LEGEND 그룹",
         RISE: "RISE 그룹"
       };
 
+      // 전체 HTML을 누적할 문자열
       let html = "";
 
+      // LEGEND, RISE 그룹 각각에 대해 순위표 렌더링
       groups.forEach(key => {
+        // 현재 그룹(LEGEND 또는 RISE)에 해당하는 팀들만 필터링
         const list = all.filter(t => t.group === key);
-        if (!list.length) return;
+        if (!list.length) return; // 해당 그룹 데이터가 없으면 건너뜀
 
+        // 각 팀을 테이블 <tr>로 변환
         const rows = list.map((t, idx) => {
+          // 순위: 직접 rank가 있으면 사용, 없으면 배열 index+1
           const rank   = (t.rank != null) ? t.rank : (idx + 1);
+          // 승/패: 값이 없으면 0으로 처리
           const win    = (t.win  != null) ? t.win  : 0;
           const loss   = (t.loss != null) ? t.loss : 0;
+          // 득실차: diff 필드가 있으면 사용, 없으면 0
           const diff   = (t.diff != null) ? t.diff : 0;
+          // 치른 경기 수 = 승 + 패 (무승부 개념 없이 승/패만 사용)
           const games  = win + loss;
+          // 승률 = 승 / (승+패), 소수점 둘째 자리까지 표현 (예: 0.67)
           const winPct = games > 0 ? (win / games).toFixed(2) : "0.00";
+          // KDA: 없으면 "-"로 표시
           const kda    = (t.kda != null) ? t.kda : "-";
+          // 킬/데스/어시스트: 숫자를 3자리마다 쉼표 찍어서 표시, 없으면 "-"
           const kills  = (t.kills   != null) ? t.kills.toLocaleString()   : "-";
           const deaths = (t.deaths  != null) ? t.deaths.toLocaleString()  : "-";
           const assists= (t.assists != null) ? t.assists.toLocaleString() : "-";
 
+          // 한 팀에 대한 순위 정보 행(<tr>) 생성
           return `
             <tr>
               <td>${rank}</td>
@@ -149,11 +206,15 @@
               <td>${deaths}</td>
               <td>${assists}</td>
             </tr>`;
-        }).join("");
+        }).join(""); // 배열을 하나의 문자열로 합침
 
+        // 해당 그룹의 제목 + 테이블을 한 블록으로 구성하여 html에 추가
         html += `
           <div class="league-group-block">
+            <!-- 그룹 이름 표시(LEGEND 그룹 / RISE 그룹) -->
             <div class="league-group-title">${groupTitle[key] || key}</div>
+
+            <!-- 공통 순위 스타일을 적용하는 래퍼 -->
             <div class="league-standing-wrap">
               <table class="league-standing-table">
                 <thead>
@@ -171,53 +232,72 @@
                   </tr>
                 </thead>
                 <tbody>
-                  ${rows}
+                  ${rows} <!-- 위에서 만든 팀별 <tr>들 삽입 -->
                 </tbody>
               </table>
             </div>
           </div>
         `;
       });
+
+      // 최종 HTML을 순위 패널에 삽입
       panel.innerHTML = html;
     }
 
-    // 탭 전환 + 히스토리 반영
+    // ===========================================
+    // 탭 전환(선수찾기 / 순위) + 히스토리 반영
+    // ===========================================
     function changeCategoryMode(mode, push = true) {
+      // 두 탭의 콘텐츠 패널 DOM 가져오기
       const playersPanel = document.getElementById("categoryPlayers");
       const standingsPanel = document.getElementById("categoryStandings");
 
+      // 선택된 모드에 따라 어떤 패널을 숨길지/보여줄지 결정
       if (playersPanel && standingsPanel) {
+        // mode가 'players'가 아니면 선수 패널 숨김
         playersPanel.classList.toggle("hidden", mode !== "players");
+        // mode가 'standings'가 아니면 순위 패널 숨김
         standingsPanel.classList.toggle("hidden", mode !== "standings");
       }
 
+      // 탭 버튼들에서 active 클래스 토글
       document
         .querySelectorAll(".category-mode-btn")
         .forEach(btn => {
-          const btnMode = btn.dataset.mode;
+          const btnMode = btn.dataset.mode; // 각 버튼이 담당하는 모드값
           btn.classList.toggle("active", btnMode === mode);
         });
 
-      // 공통 유틸이 있을 때만 호출 (없어도 에러 안 나게)
+      // tabs-history.js의 공통 유틸이 있을 때만 호출 (없으면 무시)
       if (push && window.updateTabHistory) {
-        // key: "tab" → URL: ?tab=players / ?tab=standings 이런 식
+        // "tab" 이라는 key로 URL 쿼리 문자열 및 히스토리 갱신
+        // 예: ?tab=players / ?tab=standings
         updateTabHistory("tab", mode, true);
       }
     }
     
-      document.addEventListener("DOMContentLoaded", () => {
+    // ===========================================
+    // 페이지 로드 완료 후 초기 렌더링 처리
+    // ===========================================
+    document.addEventListener("DOMContentLoaded", () => {
+      // 상단 카테고리 헤더(E-스포츠 제목 + 탭 버튼) 렌더링
       renderCategoryHeader(CATEGORY);
+      // 선수찾기 탭 내용 렌더링
       renderCategoryPlayers(CATEGORY);
+      // 순위 탭 내용 렌더링(초기엔 숨겨져 있지만 데이터는 미리 준비)
       renderCategoryStandings(CATEGORY);
 
+      // 탭 상태를 URL과 연동 (뒤로가기 / 새로고침 시에도 상태 유지)
       if (window.setupTabHistory) {
         // key "tab", 기본값 "players"
+        // URL의 ?tab 값이나 popstate 이벤트에 따라 콜백이 호출됨
         setupTabHistory("tab", "players", (mode, push) => {
-          // popstate 에서도, URL에서 처음 들어올 때도 모두 여기로 옴
+          // mode: "players" 또는 "standings"
+          // push: history를 갱신할지 여부
           changeCategoryMode(mode, push);
         });
       } else {
-        // 혹시 tabs-history.js 를 안 썼을 때 대비
+        // tabs-history.js를 사용하지 않는 경우 기본 모드는 'players'
         changeCategoryMode("players", false);
       }
     });
