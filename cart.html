@@ -64,14 +64,10 @@
          왼쪽: 장바구니 상품 목록
     ======================== -->
     <section class="cart-list-card"> <!-- 상품 리스트 박스 -->
-
-      <div class="cart-list-header">
-        <div>전체 선택</div> <!-- 전체 선택 문구(실제 기능은 JS에서 처리) -->
-      </div>
-
+      
       <div id="cartList" class="cart-list"></div>
       <!-- JS(cart.js)가 여기에 상품 아이템을 자동 생성해서 넣음 -->
-
+      
     </section>
 
     <!-- =======================
@@ -93,11 +89,15 @@
         <span>결제 예정 금액</span>
         <span id="cartFinalPrice">0원</span> <!-- 최종 결제 금액 -->
       </div>
-
+      <button class="cart-delete-selected-btn" id="btnDeleteSelected">
+        선택 상품 삭제
+      </button>
       <!-- 전체 상품 구매 버튼 (cart.js에서 이벤트 처리) -->
       <button class="cart-order-btn" id="btnOrderAll">
         총 상품 구매하기
       </button>
+      
+
 
     </aside>
   </div>
